@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Container Home settings</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font: menu;
+    }
+
+    body {
+      max-width: 52rem;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      font-size: 1.35rem;
+    }
+
+    form {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    label {
+      display: grid;
+      grid-template-columns: 11rem 1fr;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    input {
+      padding: 0.45rem;
+      font: inherit;
+    }
+
+    button {
+      justify-self: start;
+      padding: 0.45rem 0.8rem;
+      font: inherit;
+    }
+
+    #status {
+      min-height: 1.25rem;
+    }
+
+    .hint {
+      opacity: 0.75;
+    }
+  </style>
+</head>
+<body>
+  <h1>Container Home</h1>
+
+  <p class="hint">
+    Set a URL per container. Press Alt+Shift+H in a tab to load that
+    container’s URL in the same tab.
+  </p>
+
+  <form id="homes"></form>
+  <p id="status" role="status"></p>
+
+  <script src="options.js"></script>
+</body>
+</html>
