@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Open a configured home URL for the current Firefox container.",
+  "license": "MIT",
   "scripts": {
     "lint": "web-ext lint",
     "start": "web-ext run",
