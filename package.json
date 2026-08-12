@@ -1,6 +1,6 @@
 {
   "name": "container-homes",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Set a home URL per Firefox container, then jump to it from the toolbar button or Alt+Shift+Home.",
   "license": "MIT",
