@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and commit
 messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [0.2.0] - 2026-08-12
+
+### Fixes
+
+- Show each container's icon and color in the options list, pulled from
+  `contextualIdentities`, to match Firefox's native container styling.
+
 ## [0.1.0] - 2026-08-12
 
 ### Features
@@ -33,4 +40,5 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
 - Add a README covering installation, usage, permissions, development, and
   the release process.
 
+[0.2.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.2.0
 [0.1.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.1.0
