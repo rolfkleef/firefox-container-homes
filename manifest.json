@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Container Homes",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Set a home URL per Firefox container, then jump to it from the toolbar button or Alt+Shift+Home.",
   "homepage_url": "https://github.com/rolfkleef/firefox-container-homes#readme",
 

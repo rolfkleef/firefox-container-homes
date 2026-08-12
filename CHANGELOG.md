@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and commit
 messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [0.2.2] - 2026-08-13
+
+### Fixes
+
+- Drop the unneeded `tabs` permission (`activeTab` already covers it,
+  since both entry points are user-gesture-triggered).
+- Widen the container name labels in the options page for more room.
+
 ## 0.2.1 - 2026-08-12
 
 ### Chores
@@ -47,5 +55,6 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
 - Add a README covering installation, usage, permissions, development, and
   the release process.
 
+[0.2.2]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.2.2
 [0.2.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.2.0
 [0.1.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.1.0
