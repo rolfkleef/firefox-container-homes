@@ -33,4 +33,4 @@ browser.commands.onCommand.addListener(async (command) => {
   await openContainerHome(tab);
 });
 
-browser.browserAction.onClicked.addListener(openContainerHome);
+browser.action.onClicked.addListener(openContainerHome);
