@@ -23,7 +23,7 @@ async function openContainerHome(tab) {
 browser.commands.onCommand.addListener(async (command) => {
   console.log("Container Homes command received:", command);
 
-  if (command !== "open-container-home") return;
+  if (command !== "open-container-homes") return;
 
   const [tab] = await browser.tabs.query({
     active: true,

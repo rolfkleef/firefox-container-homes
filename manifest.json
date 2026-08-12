@@ -6,7 +6,7 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "container-home@rolf.local",
+      "id": "container-homes@drostan.org",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
         "required": ["none"]
@@ -52,7 +52,7 @@
   },
 
   "commands": {
-    "open-container-home": {
+    "open-container-homes": {
       "suggested_key": {
         "default": "Alt+Shift+Home"
       },

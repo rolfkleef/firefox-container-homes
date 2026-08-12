@@ -1,5 +1,5 @@
 {
-  "name": "container-home",
+  "name": "container-homes",
   "version": "0.1.0",
   "private": true,
   "description": "Open a configured home URL for the current Firefox container.",
