@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Container Home",
+  "name": "Container Homes",
   "version": "0.1.0",
   "description": "Open a configured home URL for the current Firefox container.",
 

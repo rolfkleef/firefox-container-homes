@@ -4,7 +4,7 @@ async function openContainerHome(tab) {
   const { homes = {} } = await browser.storage.local.get("homes");
   const url = homes[tab.cookieStoreId];
 
-  console.log("Container Home:", {
+  console.log("Container Homes:", {
     tabId: tab.id,
     cookieStoreId: tab.cookieStoreId,
     configuredUrl: url
@@ -21,7 +21,7 @@ async function openContainerHome(tab) {
 }
 
 browser.commands.onCommand.addListener(async (command) => {
-  console.log("Container Home command received:", command);
+  console.log("Container Homes command received:", command);
 
   if (command !== "open-container-home") return;
 
