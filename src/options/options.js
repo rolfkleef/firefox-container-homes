@@ -2,19 +2,33 @@ const form = document.querySelector("#homes");
 const status = document.querySelector("#status");
 const saveButton = document.createElement("button");
 
-function addField({ cookieStoreId, name }, homes) {
+function addField({ cookieStoreId, name, colorCode, iconUrl }, homes) {
   const label = document.createElement("label");
-  const nameSpan = document.createElement("span");
+  const nameWrap = document.createElement("span");
+  const icon = document.createElement("span");
+  const nameText = document.createElement("span");
   const input = document.createElement("input");
 
-  nameSpan.textContent = name;
+  icon.className = "identity-icon";
+  if (iconUrl) {
+    icon.style.setProperty("--identity-icon", `url("${iconUrl}")`);
+    icon.style.setProperty("--identity-color", colorCode || "currentColor");
+  } else {
+    icon.classList.add("identity-icon--default");
+  }
+
+  nameText.textContent = name;
+
+  nameWrap.className = "identity-name";
+  nameWrap.append(icon, nameText);
+
   input.type = "url";
   input.name = cookieStoreId;
   input.value = homes[cookieStoreId] || "";
   input.placeholder = "https://example.org/";
   input.autocomplete = "off";
 
-  label.append(nameSpan, input);
+  label.append(nameWrap, input);
   form.append(label);
 }
 
