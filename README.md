@@ -36,7 +36,7 @@ removed when Firefox restarts.
 
 ## Permissions
 
-- `tabs` / `activeTab` — read the current tab's container and navigate it to
+- `activeTab` — read the current tab's container and navigate it to
   the configured URL.
 - `contextualIdentities` — list your Firefox containers on the options page.
 - `storage` — save your configured URLs locally.

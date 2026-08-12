@@ -27,7 +27,6 @@
   },
 
   "permissions": [
-    "tabs",
     "activeTab",
     "storage",
     "contextualIdentities"
