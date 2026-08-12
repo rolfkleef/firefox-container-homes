@@ -72,6 +72,10 @@ This requires the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` repository secrets,
 generated at
 [addons.mozilla.org/developers/addon/api/key](https://addons.mozilla.org/developers/addon/api/key/).
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 [MIT](LICENSE)
