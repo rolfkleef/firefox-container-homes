@@ -59,10 +59,19 @@ npm run build   # produce an unsigned .zip in web-ext-artifacts/
 
 ## Releasing
 
-Releases are built and signed by CI:
+The add-on is submitted to AMO through two tracks, and they share one rule:
+**version numbers must be unique across both**, so each version belongs to
+exactly one of them.
 
-1. Bump `"version"` in `manifest.json`.
-2. Commit, then tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+### Unlisted (GitHub releases, built by CI)
+
+Use a pre-release version — Firefox's own `a`/`b`/`pre`/`rc` + number suffix
+(e.g. `0.3.0a1`, `0.3.0a2`, ...), not semver's `-beta.1` style, which Firefox
+doesn't accept.
+
+1. Bump `"version"` in `manifest.json` (and `package.json`) to a pre-release,
+   e.g. `0.3.0a1`.
+2. Commit, then tag and push: `git tag vX.Y.ZaN && git push origin vX.Y.ZaN`.
 3. GitHub Actions lints the extension, verifies the tag matches the manifest
    version, signs it via
    [addons.mozilla.org](https://addons.mozilla.org)'s unlisted-signing API,
@@ -71,6 +80,20 @@ Releases are built and signed by CI:
 This requires the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` repository secrets,
 generated at
 [addons.mozilla.org/developers/addon/api/key](https://addons.mozilla.org/developers/addon/api/key/).
+
+### Listed (public AMO submission, built and submitted by hand)
+
+Use a clean version number (e.g. `0.3.0`) — no pre-release suffix.
+
+1. Bump `"version"` in `manifest.json` (and `package.json`).
+2. Commit and push to `main` — **don't tag it**, since CI would try to sign a
+   version number that's about to be manually submitted to a different
+   channel.
+3. Run `npm run build` and upload the resulting `.zip` through the AMO web
+   UI (Developer Hub → Submit a New Add-on → "On this site").
+4. Once submitted, tag it for the record — `git tag vX.Y.Z && git push origin
+   vX.Y.Z` — CI detects the version has no pre-release suffix and skips the
+   signing/release steps automatically.
 
 ## Changelog
 
