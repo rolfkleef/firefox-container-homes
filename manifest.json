@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Container Homes",
   "version": "0.2.2",
-  "description": "Set a home URL per Firefox container, then jump to it from the toolbar button or Alt+Shift+Home.",
+  "description": "Set a home URL and up to 9 app slots per Firefox container, then jump to them with the toolbar button or Alt+Shift+Home/1-9.",
   "homepage_url": "https://github.com/rolfkleef/firefox-container-homes#readme",
 
   "browser_specific_settings": {
@@ -28,6 +28,8 @@
 
   "permissions": [
     "activeTab",
+    "tabs",
+    "cookies",
     "storage",
     "contextualIdentities"
   ],
@@ -57,6 +59,42 @@
         "default": "Alt+Shift+Home"
       },
       "description": "Open the home URL for the current container"
+    },
+    "open-slot-1": {
+      "suggested_key": { "default": "Alt+Shift+1" },
+      "description": "Switch to or open slot 1 for the current container"
+    },
+    "open-slot-2": {
+      "suggested_key": { "default": "Alt+Shift+2" },
+      "description": "Switch to or open slot 2 for the current container"
+    },
+    "open-slot-3": {
+      "suggested_key": { "default": "Alt+Shift+3" },
+      "description": "Switch to or open slot 3 for the current container"
+    },
+    "open-slot-4": {
+      "suggested_key": { "default": "Alt+Shift+4" },
+      "description": "Switch to or open slot 4 for the current container"
+    },
+    "open-slot-5": {
+      "suggested_key": { "default": "Alt+Shift+5" },
+      "description": "Switch to or open slot 5 for the current container"
+    },
+    "open-slot-6": {
+      "suggested_key": { "default": "Alt+Shift+6" },
+      "description": "Switch to or open slot 6 for the current container"
+    },
+    "open-slot-7": {
+      "suggested_key": { "default": "Alt+Shift+7" },
+      "description": "Switch to or open slot 7 for the current container"
+    },
+    "open-slot-8": {
+      "suggested_key": { "default": "Alt+Shift+8" },
+      "description": "Switch to or open slot 8 for the current container"
+    },
+    "open-slot-9": {
+      "suggested_key": { "default": "Alt+Shift+9" },
+      "description": "Switch to or open slot 9 for the current container"
     }
   }
 }

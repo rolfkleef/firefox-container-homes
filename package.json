@@ -2,7 +2,7 @@
   "name": "container-homes",
   "version": "0.2.2",
   "private": true,
-  "description": "Set a home URL per Firefox container, then jump to it from the toolbar button or Alt+Shift+Home.",
+  "description": "Set a home URL and up to 9 app slots per Firefox container, then jump to them with the toolbar button or Alt+Shift+Home/1-9.",
   "license": "MIT",
   "scripts": {
     "lint": "web-ext lint",

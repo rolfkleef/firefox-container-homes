@@ -15,14 +15,26 @@ h1 {
 
 form {
   display: grid;
+  gap: 1.5rem;
+}
+
+fieldset {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 6px;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  align-items: center;
   gap: 0.75rem;
 }
 
-label {
-  display: grid;
-  grid-template-columns: 12rem 1fr;
-  align-items: center;
-  gap: 0.75rem;
+.row-label {
+  opacity: 0.85;
 }
 
 .identity-name {
@@ -33,6 +45,7 @@ label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .identity-icon {
@@ -63,9 +76,12 @@ input {
 }
 
 button {
-  justify-self: start;
   padding: 0.45rem 0.8rem;
   font: inherit;
+}
+
+form > button {
+  justify-self: start;
 }
 
 #status {

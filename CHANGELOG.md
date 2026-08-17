@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and commit
 messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## Unreleased
+
+### Features
+
+- Add per-container app slots (1-9): `Alt+Shift+1`..`9` switch to that
+  slot's tab in the current container, or open its configured URL in a new
+  tab if it isn't already open. Bindings track the actual tab, with
+  URL-origin matching as a fallback after the tab closes or the browser
+  restarts, and raise the target window if it lives elsewhere.
+
+### Chores
+
+- Re-add the `tabs` permission, needed to find and re-focus slot tabs by id
+  or URL.
+- Add the `cookies` permission, required by `tabs.create`'s `cookieStoreId`
+  option — without it, opening a new tab for an unconfigured slot silently
+  fails.
+
 ## [0.2.2] - 2026-08-13
 
 ### Fixes
