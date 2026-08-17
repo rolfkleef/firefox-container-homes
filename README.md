@@ -20,6 +20,9 @@ shortcut.
   channels or Gmail threads) doesn't break the binding. If that tab is
   closed or the browser restarts, the next press falls back to matching by
   the slot URL's origin, or opens a fresh tab if nothing matches.
+- Export your configured home URLs and slots to a JSON file, and import them
+  back in (on this device or another). Importing replaces the current
+  configuration after a confirmation prompt.
 
 ## Installing
 
@@ -43,7 +46,10 @@ removed when Firefox restarts.
 3. Click the toolbar button, or press **Alt+Shift+Home** in any tab, to jump
    to that container's home URL. Press **Alt+Shift+1**..**9** to switch to
    (or open) that container's slot.
-4. Change the keyboard shortcuts via the extensions page (`about:addons` -
+4. Use **Export config…** on the options page to save your home URLs and
+   slots to a JSON file, and **Import config…** to load one back in — this
+   replaces the current configuration, after a confirmation prompt.
+5. Change the keyboard shortcuts via the extensions page (`about:addons` -
    click the cog in the top-right - choose "Manage Extension Shortcuts").
    Note that Firefox only auto-assigns a command's `suggested_key` the
    *first* time that command is introduced to an installed copy of the

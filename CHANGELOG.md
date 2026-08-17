@@ -13,9 +13,14 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
   tab if it isn't already open. Bindings track the actual tab, with
   URL-origin matching as a fallback after the tab closes or the browser
   restarts, and raise the target window if it lives elsewhere.
+- Add config export/import on the options page: export home URLs and slots
+  to a JSON file, and import one back in (replacing the current
+  configuration, after a confirmation prompt).
 
 ### Chores
 
+- Store a `configVersion` alongside the config, so future schema changes can
+  migrate on update instead of guessing at the stored shape.
 - Re-add the `tabs` permission, needed to find and re-focus slot tabs by id
   or URL.
 - Add the `cookies` permission, required by `tabs.create`'s `cookieStoreId`

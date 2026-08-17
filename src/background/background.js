@@ -1,3 +1,12 @@
+const CONFIG_VERSION = 1;
+
+browser.runtime.onInstalled.addListener(async () => {
+  const { configVersion } = await browser.storage.local.get("configVersion");
+  if (configVersion === undefined) {
+    await browser.storage.local.set({ configVersion: CONFIG_VERSION });
+  }
+});
+
 async function openContainerHome(tab) {
   if (!tab) return;
 

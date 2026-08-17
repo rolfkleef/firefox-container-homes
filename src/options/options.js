@@ -1,7 +1,10 @@
 const SLOT_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const SCHEMA_VERSION = 1;
 
 const form = document.querySelector("#config");
 const status = document.querySelector("#status");
+const exportButton = document.querySelector("#export");
+const importInput = document.querySelector("#import");
 const saveButton = document.createElement("button");
 
 function homeInputName(cookieStoreId) {
@@ -130,6 +133,84 @@ form.addEventListener("submit", async (event) => {
   await browser.storage.local.set({ homes, slots });
   status.textContent = "Saved.";
   saveButton.disabled = true;
+});
+
+function buildExport(containers, homes, slots) {
+  const allContainers = [
+    { cookieStoreId: "firefox-default", name: "No container / Default" },
+    ...containers
+  ];
+
+  const exportedContainers = allContainers
+    .map(({ cookieStoreId, name }) => ({
+      cookieStoreId,
+      label: name,
+      homeUrl: homes[cookieStoreId],
+      slots: slots[cookieStoreId] || {}
+    }))
+    .filter(({ homeUrl, slots: s }) => homeUrl || Object.keys(s).length > 0);
+
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    containers: exportedContainers
+  };
+}
+
+exportButton.addEventListener("click", async () => {
+  const { homes = {}, slots = {} } = await browser.storage.local.get([
+    "homes",
+    "slots"
+  ]);
+  const containers = await browser.contextualIdentities.query({});
+  const data = buildExport(containers, homes, slots);
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "container-homes-config.json";
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+importInput.addEventListener("change", async () => {
+  const [file] = importInput.files;
+  importInput.value = "";
+  if (!file) return;
+
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch {
+    status.textContent = "Could not import: not valid JSON.";
+    return;
+  }
+
+  if (data.schemaVersion !== SCHEMA_VERSION || !Array.isArray(data.containers)) {
+    status.textContent = "Could not import: unrecognized file format.";
+    return;
+  }
+
+  const confirmed = confirm(
+    `Replace all current settings with the ${data.containers.length} container(s) in this file?`
+  );
+  if (!confirmed) return;
+
+  const homes = {};
+  const slots = {};
+
+  for (const container of data.containers) {
+    if (!container || typeof container.cookieStoreId !== "string") continue;
+    if (container.homeUrl) homes[container.cookieStoreId] = container.homeUrl;
+    if (container.slots) slots[container.cookieStoreId] = container.slots;
+  }
+
+  await browser.storage.local.set({ homes, slots });
+  status.textContent = "Imported.";
+  await load();
 });
 
 load().catch((error) => {
