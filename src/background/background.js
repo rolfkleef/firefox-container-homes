@@ -304,6 +304,26 @@ async function focusAdjacentGroup(direction, activeTab) {
   await browser.tabs.update(target.tabs[0].id, { active: true });
 }
 
+// Opens a new tab next to the active tab, in the same container, and joins
+// it to the active tab's group (if any) — "container group" just falls out
+// of the new tab sharing the active tab's cookieStoreId, no need to special
+// -case which groups correspond to a container.
+async function openTabInCurrentGroup(activeTab) {
+  if (!activeTab) return;
+
+  const newTab = await browser.tabs.create({
+    cookieStoreId: activeTab.cookieStoreId,
+    index: activeTab.index + 1
+  });
+
+  if (
+    typeof browser.tabs.group === "function" &&
+    activeTab.groupId !== browser.tabGroups.TAB_GROUP_ID_NONE
+  ) {
+    await browser.tabs.group({ tabIds: newTab.id, groupId: activeTab.groupId });
+  }
+}
+
 browser.commands.onCommand.addListener(async (command) => {
   console.log("Container Homes command received:", command);
 
@@ -329,6 +349,11 @@ browser.commands.onCommand.addListener(async (command) => {
 
   if (command === "focus-next-group") {
     await focusAdjacentGroup(1, tab);
+    return;
+  }
+
+  if (command === "open-tab-in-group") {
+    await openTabInCurrentGroup(tab);
     return;
   }
 

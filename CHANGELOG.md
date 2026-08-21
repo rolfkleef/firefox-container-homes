@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and commit
 messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Features
+
+- Add `Ctrl+Shift+Space` to open a new tab next to the current one, in the same
+  container and joined to the current tab's group (if it's in one).
+
 ## [0.4.0] - 2026-08-21
 
 ### Features
@@ -17,7 +24,7 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
   Pinned tabs, other windows, and platforms without tab-group support
   (Firefox for Android) are left untouched. Re-running the shortcut re-sorts
   into the existing groups instead of creating duplicates.
-- Add `Alt+Shift+PageUp` / `Alt+Shift+PageDown` to switch to the first tab
+- Add `Alt+PageUp` / `Alt+PageDown` to switch to the first tab
   of the previous or next tab group in the current window, wrapping around
   at either end. Works whether or not the current tab is itself in a group.
 

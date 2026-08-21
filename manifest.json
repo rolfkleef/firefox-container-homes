@@ -69,15 +69,21 @@
     },
     "focus-previous-group": {
       "suggested_key": {
-        "default": "Alt+Shift+PageUp"
+        "default": "Alt+PageUp"
       },
       "description": "Switch to the first tab of the previous tab group"
     },
     "focus-next-group": {
       "suggested_key": {
-        "default": "Alt+Shift+PageDown"
+        "default": "Alt+PageDown"
       },
       "description": "Switch to the first tab of the next tab group"
+    },
+    "open-tab-in-group": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space"
+      },
+      "description": "Open a new tab in the current tab's group and container"
     },
     "open-slot-1": {
       "suggested_key": { "default": "Alt+Shift+1" },
