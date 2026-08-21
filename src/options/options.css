@@ -37,6 +37,16 @@ fieldset {
   opacity: 0.85;
 }
 
+.row--checkbox {
+  grid-template-columns: auto 1fr;
+}
+
+.row--checkbox input {
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+}
+
 .identity-name {
   display: flex;
   align-items: center;

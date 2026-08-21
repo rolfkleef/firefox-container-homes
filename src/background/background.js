@@ -153,6 +153,22 @@ function mapContainerColorToGroupColor(color) {
   return CONTAINER_COLOR_TO_GROUP_COLOR[color] ?? "grey";
 }
 
+// The title/color a tab group for this container should have, matching
+// groupTabsByContainer's "No Container" bucket and per-container buckets.
+async function groupInfoForCookieStoreId(cookieStoreId) {
+  if (cookieStoreId === DEFAULT_COOKIE_STORE_ID) {
+    return { title: "No Container", color: "grey" };
+  }
+
+  try {
+    const identity = await browser.contextualIdentities.get(cookieStoreId);
+    return { title: identity.name, color: mapContainerColorToGroupColor(identity.color) };
+  } catch {
+    // Container was removed since the tab was created; fall back.
+    return { title: "No Container", color: "grey" };
+  }
+}
+
 // Orders a container's tabs so configured-slot tabs come first (ascending
 // slot number), followed by the rest in their existing relative order.
 async function sortContainerTabs(cookieStoreId, tabs, containerSlots, windowId) {
@@ -367,4 +383,34 @@ browser.action.onClicked.addListener(openContainerHome);
 
 browser.tabs.onRemoved.addListener((tabId) => {
   clearBindingsForTab(tabId).catch((error) => console.error(error));
+});
+
+// Gated by the "autoGroupNewTabs" preference (default off). Joins the new
+// tab to its container's existing tab group in this window, or creates one
+// (titled/colored like groupTabsByContainer would) if none exists yet.
+async function handleTabCreated(tab) {
+  if (typeof browser.tabs.group !== "function") return;
+
+  const { autoGroupNewTabs = false } = await browser.storage.local.get("autoGroupNewTabs");
+  if (!autoGroupNewTabs) return;
+
+  if (tab.pinned) return;
+  if (tab.groupId !== browser.tabGroups.TAB_GROUP_ID_NONE) return;
+
+  const { title, color } = await groupInfoForCookieStoreId(tab.cookieStoreId);
+  const existingGroups = await browser.tabGroups.query({ windowId: tab.windowId, title });
+
+  if (existingGroups.length > 0) {
+    await browser.tabs.group({ tabIds: tab.id, groupId: existingGroups[0].id });
+    return;
+  }
+
+  const groupId = await browser.tabs.group({ tabIds: tab.id });
+  await browser.tabGroups.update(groupId, { title, color });
+}
+
+browser.tabs.onCreated.addListener((tab) => {
+  handleTabCreated(tab).catch((error) =>
+    console.error("Container Homes: failed to auto-group new tab:", error)
+  );
 });

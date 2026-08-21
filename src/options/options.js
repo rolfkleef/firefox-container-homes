@@ -34,6 +34,28 @@ function addRow(section, labelText, name, value) {
   section.append(label);
 }
 
+function addGeneralSection(autoGroupNewTabs) {
+  const section = document.createElement("fieldset");
+  const legend = document.createElement("legend");
+  const label = document.createElement("label");
+  const input = document.createElement("input");
+  const labelSpan = document.createElement("span");
+
+  legend.textContent = "General";
+  section.append(legend);
+
+  input.type = "checkbox";
+  input.name = "autoGroupNewTabs";
+  input.checked = autoGroupNewTabs;
+
+  labelSpan.textContent = "Automatically add new tabs to their container's tab group";
+
+  label.className = "row row--checkbox";
+  label.append(input, labelSpan);
+  section.append(label);
+  form.append(section);
+}
+
 function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes, slots) {
   const section = document.createElement("fieldset");
   const legend = document.createElement("legend");
@@ -70,13 +92,16 @@ function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes,
 }
 
 async function load() {
-  const { homes = {}, slots = {} } = await browser.storage.local.get([
+  const { homes = {}, slots = {}, autoGroupNewTabs = false } = await browser.storage.local.get([
     "homes",
-    "slots"
+    "slots",
+    "autoGroupNewTabs"
   ]);
   const containers = await browser.contextualIdentities.query({});
 
   form.replaceChildren();
+
+  addGeneralSection(autoGroupNewTabs);
 
   addContainerSection(
     { cookieStoreId: "firefox-default", name: "No container / Default" },
@@ -107,7 +132,7 @@ form.addEventListener("submit", async (event) => {
   const homes = {};
   const slots = {};
 
-  for (const input of form.querySelectorAll("input")) {
+  for (const input of form.querySelectorAll('input[type="url"]')) {
     const url = input.value.trim();
 
     if (!url) continue;
@@ -130,7 +155,9 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
-  await browser.storage.local.set({ homes, slots });
+  const autoGroupNewTabs = form.querySelector('input[name="autoGroupNewTabs"]').checked;
+
+  await browser.storage.local.set({ homes, slots, autoGroupNewTabs });
   status.textContent = "Saved.";
   saveButton.disabled = true;
 });

@@ -37,6 +37,10 @@ window per container, and sort them (app slots first).
   Works whether or not the current tab is itself in a group.
 - Press **Ctrl+Shift+Space** to open a new tab next to the current one, in the
   same container and joined to the current tab's group (if it's in one).
+- Optionally (off by default — enable it on the options page), automatically
+  add every new tab to its container's tab group in the current window as
+  soon as it's created, joining an existing group or creating one if none
+  exists yet. Pinned tabs are left alone.
 
 ## Installing
 
@@ -68,8 +72,11 @@ removed when Firefox restarts.
    **Alt+PageUp** / **Alt+PageDown** to switch to the first tab
    of the previous or next group, or **Ctrl+Shift+Space** to open a new tab
    in the current tab's group and container.
-
-6. Change the keyboard shortcuts via the extensions page (`about:addons` -
+6. Check **Automatically add new tabs to their container's tab group** on
+   the options page to have every new tab join (or start) its container's
+   group as soon as it's created, instead of only when you press
+   Alt+Shift+0. Off by default.
+7. Change the keyboard shortcuts via the extensions page (`about:addons` -
    click the cog in the top-right - choose "Manage Extension Shortcuts").
    Note that Firefox only auto-assigns a command's `suggested_key` the
    *first* time that command is introduced to an installed copy of the

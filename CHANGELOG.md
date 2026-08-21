@@ -10,6 +10,10 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
 
 - Add `Ctrl+Shift+Space` to open a new tab next to the current one, in the same
   container and joined to the current tab's group (if it's in one).
+- Add an options-page preference, "Automatically add new tabs to their
+  container's tab group" (off by default), that joins every new tab to its
+  container's existing group in the current window, or creates one for it
+  if none exists yet. Pinned tabs are left alone.
 
 ## [0.4.0] - 2026-08-21
 
