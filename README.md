@@ -32,6 +32,9 @@ window per container, and sort them (app slots first).
   one native tab group per container (plus a "No Container" group), each
   with its configured slot tabs sorted to the front in slot order.
   (Not available on Firefox for Android.)
+- Press **Alt+Shift+PageUp** / **Alt+Shift+PageDown** to switch to the first
+  tab of the previous or next tab group, wrapping around at either end.
+  Works whether or not the current tab is itself in a group.
 
 ## Installing
 
@@ -59,7 +62,9 @@ removed when Firefox restarts.
    slots to a JSON file, and **Import config…** to load one back in — this
    replaces the current configuration, after a confirmation prompt.
 5. Press **Alt+Shift+0** to group this window's tabs into native tab groups
-   by container, with each container's slot tabs sorted to the front.
+   by container, with each container's slot tabs sorted to the front. Press
+   **Alt+Shift+PageUp** / **Alt+Shift+PageDown** to switch to the first tab
+   of the previous or next group.
 6. Change the keyboard shortcuts via the extensions page (`about:addons` -
    click the cog in the top-right - choose "Manage Extension Shortcuts").
    Note that Firefox only auto-assigns a command's `suggested_key` the

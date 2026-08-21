@@ -8,7 +8,7 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
 
 ### Features
 
-- Add `Alt+Shift+G` to group and sort the current window's tabs by
+- Add `Alt+Shift+0` to group and sort the current window's tabs by
   container: one native tab group per container with tabs in this window
   (plus a "No Container" group for default-context tabs), titled and
   colored to match, ordered "No Container" first then by container order.
@@ -17,6 +17,9 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
   Pinned tabs, other windows, and platforms without tab-group support
   (Firefox for Android) are left untouched. Re-running the shortcut re-sorts
   into the existing groups instead of creating duplicates.
+- Add `Alt+Shift+PageUp` / `Alt+Shift+PageDown` to switch to the first tab
+  of the previous or next tab group in the current window, wrapping around
+  at either end. Works whether or not the current tab is itself in a group.
 
 ### Chores
 

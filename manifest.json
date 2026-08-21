@@ -67,6 +67,18 @@
       },
       "description": "Group and sort this window's tabs by container"
     },
+    "focus-previous-group": {
+      "suggested_key": {
+        "default": "Alt+Shift+PageUp"
+      },
+      "description": "Switch to the first tab of the previous tab group"
+    },
+    "focus-next-group": {
+      "suggested_key": {
+        "default": "Alt+Shift+PageDown"
+      },
+      "description": "Switch to the first tab of the next tab group"
+    },
     "open-slot-1": {
       "suggested_key": { "default": "Alt+Shift+1" },
       "description": "Switch to or open slot 1 for the current container"

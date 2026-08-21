@@ -252,6 +252,58 @@ async function groupTabsByContainer() {
   }
 }
 
+// Tab groups ordered left-to-right by their leftmost tab's index, each with
+// its own tabs pre-sorted by index so the first tab is ready to jump to.
+async function getOrderedGroups(windowId) {
+  const groups = await browser.tabGroups.query({ windowId });
+
+  const withTabs = await Promise.all(
+    groups.map(async (group) => {
+      const tabs = await browser.tabs.query({ windowId, groupId: group.id });
+      tabs.sort((a, b) => a.index - b.index);
+      return { groupId: group.id, position: tabs[0]?.index, tabs };
+    })
+  );
+
+  return withTabs
+    .filter((g) => g.tabs.length > 0)
+    .sort((a, b) => a.position - b.position);
+}
+
+// direction: -1 for the previous group, +1 for the next. Ordering is based
+// on each group's position relative to the active tab's own index, so this
+// works whether or not the active tab is currently in a group itself.
+// Wraps around at either end.
+async function focusAdjacentGroup(direction, activeTab) {
+  if (typeof browser.tabGroups?.query !== "function") {
+    console.warn(
+      "Container Homes: tab groups aren't supported on this platform (e.g. Firefox for Android); skipping."
+    );
+    return;
+  }
+  if (!activeTab) return;
+
+  const orderedGroups = await getOrderedGroups(activeTab.windowId);
+  if (orderedGroups.length === 0) return;
+
+  const currentGroup =
+    activeTab.groupId !== browser.tabGroups.TAB_GROUP_ID_NONE
+      ? orderedGroups.find((g) => g.groupId === activeTab.groupId)
+      : null;
+  const referencePosition = currentGroup ? currentGroup.position : activeTab.index;
+
+  let target;
+  if (direction > 0) {
+    target = orderedGroups.find((g) => g.position > referencePosition);
+    if (!target) [target] = orderedGroups;
+  } else {
+    target = [...orderedGroups].reverse().find((g) => g.position < referencePosition);
+    if (!target) target = orderedGroups[orderedGroups.length - 1];
+  }
+
+  await browser.tabs.update(target.tabs[0].id, { active: true });
+}
+
 browser.commands.onCommand.addListener(async (command) => {
   console.log("Container Homes command received:", command);
 
@@ -267,6 +319,16 @@ browser.commands.onCommand.addListener(async (command) => {
 
   if (command === "group-tabs-by-container") {
     await groupTabsByContainer();
+    return;
+  }
+
+  if (command === "focus-previous-group") {
+    await focusAdjacentGroup(-1, tab);
+    return;
+  }
+
+  if (command === "focus-next-group") {
+    await focusAdjacentGroup(1, tab);
     return;
   }
 
