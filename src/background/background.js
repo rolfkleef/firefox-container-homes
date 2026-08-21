@@ -58,6 +58,10 @@ async function clearBindingsForTab(tabId) {
   if (changed) await browser.storage.session.set({ bindings });
 }
 
+function isEmptyTab(tab) {
+  return tab && (tab.url === "about:blank" || tab.url === "about:newtab");
+}
+
 function matchPatternFor(url) {
   try {
     return `${new URL(url).origin}/*`;
@@ -109,6 +113,12 @@ async function activateSlot(slotNumber, activeTab) {
     const [tab] = candidates;
     await setBinding(cookieStoreId, slotNumber, tab.id, url);
     await focusTab(tab);
+    return;
+  }
+
+  if (isEmptyTab(activeTab)) {
+    await browser.tabs.update(activeTab.id, { url });
+    await setBinding(cookieStoreId, slotNumber, activeTab.id, url);
     return;
   }
 
