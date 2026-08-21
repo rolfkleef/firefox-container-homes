@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and commit
 messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [Unreleased]
+
+### Features
+
+- Add `Alt+Shift+G` to group and sort the current window's tabs by
+  container: one native tab group per container with tabs in this window
+  (plus a "No Container" group for default-context tabs), titled and
+  colored to match, ordered "No Container" first then by container order.
+  Each container's configured slot tabs (1-9) are sorted to the front of
+  its group in slot order; other tabs keep their existing relative order.
+  Pinned tabs, other windows, and platforms without tab-group support
+  (Firefox for Android) are left untouched. Re-running the shortcut re-sorts
+  into the existing groups instead of creating duplicates.
+
+### Chores
+
+- Add the `tabGroups` permission, required to create, title, color, and
+  reorder native tab groups for the new group-and-sort command.
+
 ## [0.3.0] - 2026-08-17
 
 ### Features

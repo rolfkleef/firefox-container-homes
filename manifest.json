@@ -31,7 +31,8 @@
     "tabs",
     "cookies",
     "storage",
-    "contextualIdentities"
+    "contextualIdentities",
+    "tabGroups"
   ],
 
   "background": {
@@ -59,6 +60,12 @@
         "default": "Alt+Shift+Home"
       },
       "description": "Open the home URL for the current container"
+    },
+    "group-tabs-by-container": {
+      "suggested_key": {
+        "default": "Alt+Shift+0"
+      },
+      "description": "Group and sort this window's tabs by container"
     },
     "open-slot-1": {
       "suggested_key": { "default": "Alt+Shift+1" },

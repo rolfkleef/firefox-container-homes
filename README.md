@@ -1,9 +1,14 @@
 # Container Homes
 
-A minimal Firefox extension that opens a configured home URL for the current
-container (Multi-Account Containers), and gives each container up to 9
-Ferdium/Franz-style app slots you switch to (or open) with a keyboard
-shortcut.
+A Firefox extension to work with multi-account containers in a style insprired
+by all-in-one apps like Franz, Rambox, and so on.
+
+For each multi account container, you can specify a home page, as well as
+app or service slots 1 to 9. Use **Alt+Shift+1..9** to open or switch to
+one of the app slots in the current container.
+
+An extra shortcut **Alt+Shift+0** lets you group the tabs in the current
+window per container, and sort them (app slots first).
 
 ## Features
 
@@ -23,6 +28,10 @@ shortcut.
 - Export your configured home URLs and slots to a JSON file, and import them
   back in (on this device or another). Importing replaces the current
   configuration after a confirmation prompt.
+- Press **Alt+Shift+0** to group and sort the tabs in the current window:
+  one native tab group per container (plus a "No Container" group), each
+  with its configured slot tabs sorted to the front in slot order.
+  (Not available on Firefox for Android.)
 
 ## Installing
 
@@ -49,14 +58,18 @@ removed when Firefox restarts.
 4. Use **Export config…** on the options page to save your home URLs and
    slots to a JSON file, and **Import config…** to load one back in — this
    replaces the current configuration, after a confirmation prompt.
-5. Change the keyboard shortcuts via the extensions page (`about:addons` -
+5. Press **Alt+Shift+0** to group this window's tabs into native tab groups
+   by container, with each container's slot tabs sorted to the front.
+6. Change the keyboard shortcuts via the extensions page (`about:addons` -
    click the cog in the top-right - choose "Manage Extension Shortcuts").
    Note that Firefox only auto-assigns a command's `suggested_key` the
    *first* time that command is introduced to an installed copy of the
    extension — if you add new commands to an already-loaded extension (e.g.
    during development) and just reload it, the new shortcuts come up
    unbound until you set them here, or remove and re-load the temporary
-   add-on from scratch.
+   add-on from scratch. This page also lets you check whether a shortcut is
+   already claimed by another installed extension (e.g. Multi-Account
+   Containers' own "Sort Tabs" command).
 
 ## Permissions
 
@@ -69,6 +82,9 @@ removed when Firefox restarts.
 - `contextualIdentities` — list your Firefox containers on the options page.
 - `storage` — save your configured URLs locally, and remember which tab
   each slot last switched to for the current browser session.
+- `tabGroups` — create, title, color, and reorder native tab groups for the
+  group-and-sort command. Not available on Firefox for Android; the command
+  no-ops there.
 
 No data leaves your device.
 

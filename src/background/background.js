@@ -75,6 +75,27 @@ async function focusTab(tab) {
   await browser.windows.update(tab.windowId, { focused: true });
 }
 
+// Only trusts a binding while it still points at the currently configured
+// URL — otherwise a slot that's been repointed at a new app would keep
+// resolving to whatever tab the old URL last used. Pure: never writes
+// bindings or focuses tabs, so it's safe to reuse for read-only sorting.
+async function resolveSlotTab(cookieStoreId, slotNumber, url) {
+  const binding = await getBinding(cookieStoreId, slotNumber);
+  if (binding && binding.url === url) {
+    try {
+      return { tab: await browser.tabs.get(binding.tabId), viaBinding: true };
+    } catch {
+      // Bound tab is gone (closed, or browser restarted); fall through.
+    }
+  }
+
+  const matchPattern = matchPatternFor(url);
+  if (!matchPattern) return null;
+
+  const [tab] = await browser.tabs.query({ cookieStoreId, url: matchPattern });
+  return tab ? { tab, viaBinding: false } : null;
+}
+
 async function activateSlot(slotNumber, activeTab) {
   if (!activeTab) return;
 
@@ -89,30 +110,12 @@ async function activateSlot(slotNumber, activeTab) {
     return;
   }
 
-  const binding = await getBinding(cookieStoreId, slotNumber);
-
-  // Only trust the binding while it still points at the currently configured
-  // URL — otherwise a slot that's been repointed at a new app would keep
-  // reopening whatever tab the old URL last used.
-  if (binding && binding.url === url) {
-    try {
-      const tab = await browser.tabs.get(binding.tabId);
-      await focusTab(tab);
-      return;
-    } catch {
-      // Bound tab is gone (closed, or browser restarted); recover below.
+  const resolved = await resolveSlotTab(cookieStoreId, slotNumber, url);
+  if (resolved) {
+    if (!resolved.viaBinding) {
+      await setBinding(cookieStoreId, slotNumber, resolved.tab.id, url);
     }
-  }
-
-  const matchPattern = matchPatternFor(url);
-  const candidates = matchPattern
-    ? await browser.tabs.query({ cookieStoreId, url: matchPattern })
-    : [];
-
-  if (candidates.length > 0) {
-    const [tab] = candidates;
-    await setBinding(cookieStoreId, slotNumber, tab.id, url);
-    await focusTab(tab);
+    await focusTab(resolved.tab);
     return;
   }
 
@@ -126,6 +129,129 @@ async function activateSlot(slotNumber, activeTab) {
   await setBinding(cookieStoreId, slotNumber, newTab.id, url);
 }
 
+const DEFAULT_COOKIE_STORE_ID = "firefox-default";
+
+// contextualIdentities colors (both legacy and current names) mapped to the
+// nearest tabGroups.Color enum value.
+const CONTAINER_COLOR_TO_GROUP_COLOR = {
+  blue: "blue",
+  cyan: "cyan",
+  turquoise: "cyan",
+  grey: "grey",
+  gray: "grey",
+  toolbar: "grey",
+  green: "green",
+  yellow: "yellow",
+  orange: "orange",
+  red: "red",
+  pink: "pink",
+  purple: "purple",
+  violet: "purple"
+};
+
+function mapContainerColorToGroupColor(color) {
+  return CONTAINER_COLOR_TO_GROUP_COLOR[color] ?? "grey";
+}
+
+// Orders a container's tabs so configured-slot tabs come first (ascending
+// slot number), followed by the rest in their existing relative order.
+async function sortContainerTabs(cookieStoreId, tabs, containerSlots, windowId) {
+  const tabIdSet = new Set(tabs.map((t) => t.id));
+  const usedTabIds = new Set();
+  const slotTabIds = [];
+
+  for (let slotNumber = 1; slotNumber <= 9; slotNumber++) {
+    const url = containerSlots[slotNumber];
+    if (!url) continue;
+
+    const resolved = await resolveSlotTab(cookieStoreId, slotNumber, url);
+    if (!resolved) continue;
+
+    const { tab } = resolved;
+    if (tab.windowId !== windowId) continue;
+    if (!tabIdSet.has(tab.id) || usedTabIds.has(tab.id)) continue;
+
+    slotTabIds.push(tab.id);
+    usedTabIds.add(tab.id);
+  }
+
+  const restTabIds = tabs
+    .filter((t) => !usedTabIds.has(t.id))
+    .map((t) => t.id);
+
+  return [...slotTabIds, ...restTabIds];
+}
+
+// Firefox may silently drop a tab out of its group when that tab is moved
+// to an index outside the group's current bounds, so reordering grouped
+// tabs in place isn't safe. Instead: ungroup first (so there's no group
+// membership left to disturb), move the now-ungrouped tabs into the
+// correct order at the end of the strip, and only then form a fresh group
+// over the settled tabs. Any previous same-title group empties out and is
+// auto-removed by the ungroup step, so this is safe to re-run.
+async function groupSortedTabs(title, color, tabIds) {
+  await browser.tabs.ungroup(tabIds);
+  await browser.tabs.move(tabIds, { index: -1 });
+
+  const groupId = await browser.tabs.group({ tabIds });
+  await browser.tabGroups.update(groupId, { title, color });
+}
+
+async function groupTabsByContainer() {
+  if (typeof browser.tabs.group !== "function") {
+    console.warn(
+      "Container Homes: tab groups aren't supported on this platform (e.g. Firefox for Android); skipping."
+    );
+    return;
+  }
+
+  const { id: windowId } = await browser.windows.getCurrent();
+
+  const [allTabs, containers, { slots: allSlots = {} }] = await Promise.all([
+    browser.tabs.query({ windowId }),
+    browser.contextualIdentities.query({}),
+    browser.storage.local.get("slots")
+  ]);
+
+  const nonPinned = allTabs.filter((t) => !t.pinned);
+
+  const buckets = [
+    { cookieStoreId: DEFAULT_COOKIE_STORE_ID, title: "No Container", color: "grey" },
+    ...containers.map((c) => ({
+      cookieStoreId: c.cookieStoreId,
+      title: c.name,
+      color: mapContainerColorToGroupColor(c.color)
+    }))
+  ];
+
+  const tabsByContainer = new Map();
+  for (const tab of nonPinned) {
+    const list = tabsByContainer.get(tab.cookieStoreId) ?? [];
+    list.push(tab);
+    tabsByContainer.set(tab.cookieStoreId, list);
+  }
+
+  for (const bucket of buckets) {
+    const tabs = tabsByContainer.get(bucket.cookieStoreId);
+    if (!tabs || tabs.length === 0) continue;
+
+    try {
+      const containerSlots = allSlots[bucket.cookieStoreId] || {};
+      const sortedTabIds = await sortContainerTabs(
+        bucket.cookieStoreId,
+        tabs,
+        containerSlots,
+        windowId
+      );
+
+      await groupSortedTabs(bucket.title, bucket.color, sortedTabIds);
+    } catch (error) {
+      // Don't let one container's failure block the rest from grouping.
+      console.error(`Container Homes: failed to group "${bucket.title}":`, error);
+    }
+  }
+}
+
 browser.commands.onCommand.addListener(async (command) => {
   console.log("Container Homes command received:", command);
 
@@ -136,6 +262,11 @@ browser.commands.onCommand.addListener(async (command) => {
 
   if (command === "open-container-homes") {
     await openContainerHome(tab);
+    return;
+  }
+
+  if (command === "group-tabs-by-container") {
+    await groupTabsByContainer();
     return;
   }
 
