@@ -97,11 +97,29 @@ form > button {
 .io-actions {
   display: flex;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.message {
+  margin: 0 0 1.5rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: 6px;
+}
+
+.message--error {
+  border-color: #d70022;
+  background: color-mix(in srgb, #d70022 12%, Canvas);
+}
+
+.message--success {
+  border-color: #058b00;
+  background: color-mix(in srgb, #058b00 12%, Canvas);
 }
 
 #status {
-  min-height: 1.25rem;
+  margin: 1rem 0 0;
 }
 
 .hint {

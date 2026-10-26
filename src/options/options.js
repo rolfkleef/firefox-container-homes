@@ -4,10 +4,20 @@ const DEFAULT_COOKIE_STORE_ID = "firefox-default";
 
 const form = document.querySelector("#config");
 const status = document.querySelector("#status");
+const ioStatus = document.querySelector("#io-status");
 const exportButton = document.querySelector("#export");
 const importInput = document.querySelector("#import");
 const importButton = document.querySelector("#import-button");
 const saveButton = document.createElement("button");
+
+// Shows a message styled by kind ("error" or "success"); an empty text hides
+// it. Errors use role="alert" so screen readers announce them right away.
+function showMessage(element, text, kind = "success") {
+  element.textContent = text;
+  element.hidden = !text;
+  element.className = text ? `message message--${kind}` : "message";
+  element.setAttribute("role", kind === "error" ? "alert" : "status");
+}
 
 function homeInputName(cookieStoreId) {
   return `home:${cookieStoreId}`;
@@ -124,7 +134,7 @@ async function load() {
 form.addEventListener("input", (event) => {
   if (!event.target.matches("input")) return;
 
-  status.textContent = "";
+  showMessage(status, "");
   saveButton.disabled = false;
 });
 
@@ -143,7 +153,7 @@ form.addEventListener("submit", async (event) => {
     try {
       href = new URL(url).href;
     } catch {
-      status.textContent = `Not a valid URL: ${url}`;
+      showMessage(status, `Not a valid URL: ${url}`, "error");
       return;
     }
 
@@ -160,7 +170,7 @@ form.addEventListener("submit", async (event) => {
   const autoGroupNewTabs = form.querySelector('input[name="autoGroupNewTabs"]').checked;
 
   await browser.storage.local.set({ homes, slots, autoGroupNewTabs });
-  status.textContent = "Saved.";
+  showMessage(status, "Saved.");
   saveButton.disabled = true;
 });
 
@@ -318,11 +328,13 @@ importInput.addEventListener("change", async () => {
   importInput.value = "";
   if (!file) return;
 
+  showMessage(ioStatus, "");
+
   let data;
   try {
     data = JSON.parse(await file.text());
   } catch {
-    status.textContent = "Could not import: not valid JSON.";
+    showMessage(ioStatus, "Could not import: not valid JSON.", "error");
     return;
   }
 
@@ -330,7 +342,7 @@ importInput.addEventListener("change", async () => {
   try {
     parsed = parseImport(data);
   } catch (error) {
-    status.textContent = `Could not import: ${error.message}`;
+    showMessage(ioStatus, `Could not import: ${error.message}`, "error");
     return;
   }
 
@@ -387,13 +399,17 @@ importInput.addEventListener("change", async () => {
 
   await load();
   if (failedShortcuts.length > 0) {
-    status.textContent = `Imported, but could not set shortcuts for: ${failedShortcuts.join(", ")}.`;
+    showMessage(
+      ioStatus,
+      `Imported, but could not set shortcuts for: ${failedShortcuts.join(", ")}.`,
+      "error"
+    );
     return;
   }
-  status.textContent = created > 0 ? `Imported; created ${created} container(s).` : "Imported.";
+  showMessage(ioStatus, created > 0 ? `Imported; created ${created} container(s).` : "Imported.");
 });
 
 load().catch((error) => {
   console.error(error);
-  status.textContent = `Could not load containers: ${error.message}`;
+  showMessage(ioStatus, `Could not load containers: ${error.message}`, "error");
 });
