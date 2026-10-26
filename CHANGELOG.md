@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and commit
 messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [0.6.2] - 2026-10-26
+
+### Bug Fixes
+
+- Imported config files are now checked in full before anything is changed.
+  An invalid file (bad URL, unknown slot, missing container name, malformed
+  shortcuts) is rejected with a message saying what's wrong, and the current
+  configuration is left untouched.
+- Import and export messages now appear right below the Export/Import
+  buttons, styled as an error or success, instead of at the bottom of the
+  page.
+- The Import config button can now be used with the keyboard.
+
 ## [0.6.1] - 2026-10-26
 
 ### Bug Fixes
@@ -136,6 +149,7 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
 - Add a README covering installation, usage, permissions, development, and
   the release process.
 
+[0.6.2]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.6.2
 [0.6.1]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.6.1
 [0.6.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.6.0
 [0.5.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.5.0
