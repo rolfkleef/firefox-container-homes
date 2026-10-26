@@ -209,6 +209,108 @@ exportButton.addEventListener("click", async () => {
   URL.revokeObjectURL(url);
 });
 
+// Firefox's contextualIdentities values; anything else falls back to a
+// default so a file from a newer Firefox still imports.
+const CONTAINER_ICONS = [
+  "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation",
+  "food", "fruit", "pet", "tree", "chill", "fence"
+];
+const CONTAINER_COLORS = [
+  "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple", "toolbar"
+];
+
+// Turns a parsed export file into { schemaVersion, entries, shortcuts }, or
+// throws an Error describing the first problem found. Nothing is stored or
+// created unless the whole file validates, so a bad file can't leave a
+// half-imported config.
+function parseImport(data) {
+  if (
+    !data ||
+    typeof data !== "object" ||
+    ![1, SCHEMA_VERSION].includes(data.schemaVersion) ||
+    !Array.isArray(data.containers)
+  ) {
+    throw new Error("unrecognized file format.");
+  }
+
+  const entries = data.containers.map((container) => {
+    if (!container || typeof container !== "object") {
+      throw new Error("a container entry is not an object.");
+    }
+
+    // The default container is keyed by its fixed id in every version; v1
+    // files key all containers by id, v2 files by name.
+    let entry;
+    if (container.cookieStoreId === DEFAULT_COOKIE_STORE_ID || data.schemaVersion === 1) {
+      const { cookieStoreId } = container;
+      if (typeof cookieStoreId !== "string" || !cookieStoreId) {
+        throw new Error("a container entry has no cookieStoreId.");
+      }
+      entry = { cookieStoreId, label: cookieStoreId };
+    } else {
+      const { name } = container;
+      if (typeof name !== "string" || !name.trim()) {
+        throw new Error("a container entry has no name.");
+      }
+      entry = {
+        name,
+        icon: CONTAINER_ICONS.includes(container.icon) ? container.icon : "fingerprint",
+        color: CONTAINER_COLORS.includes(container.color) ? container.color : "blue",
+        label: name
+      };
+    }
+
+    if (container.homeUrl) {
+      entry.homeUrl = parseImportedUrl(container.homeUrl, entry.label);
+    }
+
+    entry.slots = {};
+    if (container.slots !== undefined) {
+      if (
+        typeof container.slots !== "object" ||
+        container.slots === null ||
+        Array.isArray(container.slots)
+      ) {
+        throw new Error(`slots for ${entry.label} are not an object.`);
+      }
+
+      for (const [slotNumber, url] of Object.entries(container.slots)) {
+        if (!SLOT_NUMBERS.map(String).includes(slotNumber)) {
+          throw new Error(`${entry.label} has an unknown slot "${slotNumber}".`);
+        }
+        entry.slots[slotNumber] = parseImportedUrl(url, entry.label);
+      }
+    }
+
+    return entry;
+  });
+
+  // Older exports have no shortcuts; leave the current ones alone then.
+  let shortcuts = null;
+  if (data.shortcuts !== undefined) {
+    if (
+      typeof data.shortcuts !== "object" ||
+      data.shortcuts === null ||
+      Array.isArray(data.shortcuts) ||
+      !Object.values(data.shortcuts).every((shortcut) => typeof shortcut === "string")
+    ) {
+      throw new Error("shortcuts are not a map of command names to keys.");
+    }
+    shortcuts = data.shortcuts;
+  }
+
+  return { schemaVersion: data.schemaVersion, entries, shortcuts };
+}
+
+function parseImportedUrl(url, label) {
+  try {
+    if (typeof url !== "string") throw new TypeError();
+    return new URL(url).href;
+  } catch {
+    throw new Error(`${label} has an invalid URL.`);
+  }
+}
+
 importButton.addEventListener("click", () => importInput.click());
 
 importInput.addEventListener("change", async () => {
@@ -224,13 +326,16 @@ importInput.addEventListener("change", async () => {
     return;
   }
 
-  if (![1, SCHEMA_VERSION].includes(data.schemaVersion) || !Array.isArray(data.containers)) {
-    status.textContent = "Could not import: unrecognized file format.";
+  let parsed;
+  try {
+    parsed = parseImport(data);
+  } catch (error) {
+    status.textContent = `Could not import: ${error.message}`;
     return;
   }
 
   const confirmed = confirm(
-    `Replace all current settings with the ${data.containers.length} container(s) in this file? ` +
+    `Replace all current settings with the ${parsed.entries.length} container(s) in this file? ` +
       "Containers that don't exist yet (by name) will be created."
   );
   if (!confirmed) return;
@@ -241,28 +346,19 @@ importInput.addEventListener("change", async () => {
   const claimed = new Set();
   let created = 0;
 
-  for (const container of data.containers) {
-    if (!container) continue;
-
-    let cookieStoreId;
-    if (container.cookieStoreId === DEFAULT_COOKIE_STORE_ID) {
-      cookieStoreId = DEFAULT_COOKIE_STORE_ID;
-    } else if (data.schemaVersion === 1) {
-      // Legacy exports only carry ids.
-      if (typeof container.cookieStoreId !== "string") continue;
-      cookieStoreId = container.cookieStoreId;
-    } else {
-      if (typeof container.name !== "string") continue;
+  for (const entry of parsed.entries) {
+    let { cookieStoreId } = entry;
+    if (!cookieStoreId) {
       const match = existing.find(
-        (identity) => identity.name === container.name && !claimed.has(identity.cookieStoreId)
+        (identity) => identity.name === entry.name && !claimed.has(identity.cookieStoreId)
       );
       if (match) {
         cookieStoreId = match.cookieStoreId;
       } else {
         const identity = await browser.contextualIdentities.create({
-          name: container.name,
-          icon: container.icon || "fingerprint",
-          color: container.color || "blue"
+          name: entry.name,
+          icon: entry.icon,
+          color: entry.color
         });
         cookieStoreId = identity.cookieStoreId;
         created++;
@@ -270,19 +366,17 @@ importInput.addEventListener("change", async () => {
       claimed.add(cookieStoreId);
     }
 
-    if (container.homeUrl) homes[cookieStoreId] = container.homeUrl;
-    if (container.slots && Object.keys(container.slots).length > 0) {
-      slots[cookieStoreId] = container.slots;
-    }
+    if (entry.homeUrl) homes[cookieStoreId] = entry.homeUrl;
+    if (Object.keys(entry.slots).length > 0) slots[cookieStoreId] = entry.slots;
   }
 
   await browser.storage.local.set({ homes, slots });
-  // Older exports have no shortcuts; leave the current ones alone then.
+
   const failedShortcuts = [];
-  if (data.shortcuts && typeof data.shortcuts === "object") {
+  if (parsed.shortcuts) {
     const knownCommands = new Set((await browser.commands.getAll()).map(({ name }) => name));
-    for (const [name, shortcut] of Object.entries(data.shortcuts)) {
-      if (!knownCommands.has(name) || typeof shortcut !== "string") continue;
+    for (const [name, shortcut] of Object.entries(parsed.shortcuts)) {
+      if (!knownCommands.has(name)) continue;
       try {
         await browser.commands.update({ name, shortcut });
       } catch {
