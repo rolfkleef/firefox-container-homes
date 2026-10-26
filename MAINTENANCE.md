@@ -30,3 +30,18 @@ node-forge  *   (GHSA-86w9-cpqp-85rv: RSA PKCS#1 v1.5 signature
 fixed node-forge (or drops it), or a patched node-forge appears — then a
 normal `npm update` (or an `overrides` entry for node-forge) should clear the
 audit warnings.
+
+## Config import: schema v1 compatibility (2026-10-26)
+
+Config exports moved from schema v1 (containers keyed by `cookieStoreId`) to
+v2 (containers keyed by name, with icon and color, plus keyboard shortcuts)
+in 0.6.0. The import in `src/options/options.js` still accepts both formats,
+so files exported by 0.5.x and earlier keep working.
+
+**Remove v1 support before 1.0.** While we're on 0.x this dual path is a
+convenience, not a promise. Before tagging 1.0, drop the v1 branches —
+`parseImport` accepting `schemaVersion: 1`, and keying v1 entries by
+`cookieStoreId` — and only accept the current schema. `firefox-default`
+stays keyed by its id, as that's part of v2 too. Mention the removal in the
+CHANGELOG, so anyone with an old export knows to re-export it with a 0.x
+version first.
