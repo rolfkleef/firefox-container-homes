@@ -392,7 +392,67 @@ browser.commands.onCommand.addListener(async (command) => {
   }
 });
 
-browser.action.onClicked.addListener(openContainerHome);
+// What the slot popup shows for this tab's container: its name and color,
+// its home URL, and its configured slots, each marked open if switching to
+// it would focus an existing tab (resolveSlotTab is read-only).
+async function getPopupState(tab) {
+  const { cookieStoreId } = tab;
+  const { homes = {}, slots = {} } = await browser.storage.local.get(["homes", "slots"]);
+
+  let name;
+  let colorCode = null;
+  if (cookieStoreId === "firefox-private") {
+    name = "Private";
+  } else {
+    ({ title: name } = await groupInfoForCookieStoreId(cookieStoreId));
+    if (cookieStoreId !== DEFAULT_COOKIE_STORE_ID) {
+      try {
+        ({ colorCode } = await browser.contextualIdentities.get(cookieStoreId));
+      } catch {
+        // Container removed since the tab was created; no color.
+      }
+    }
+  }
+
+  const containerSlots = slots[cookieStoreId] ?? {};
+  const slotList = [];
+  for (let number = 1; number <= 9; number++) {
+    const url = containerSlots[number];
+    if (!url) continue;
+    const open = Boolean(await resolveSlotTab(cookieStoreId, number, url));
+    slotList.push({ number, url, open });
+  }
+
+  return {
+    container: { name, colorCode },
+    home: homes[cookieStoreId] ?? null,
+    slots: slotList
+  };
+}
+
+async function getActiveTab() {
+  const [tab] = await browser.tabs.query({ active: true, lastFocusedWindow: true });
+  return tab;
+}
+
+// The popup (src/popup) asks for its state and opens rows through here, so
+// home and slot behavior stay identical to the keyboard shortcuts. The
+// toolbar button has a popup, so action.onClicked no longer fires.
+browser.runtime.onMessage.addListener((message) => {
+  if (message?.type === "getPopupState") {
+    return getActiveTab().then(getPopupState);
+  }
+
+  if (message?.type === "openRow") {
+    return getActiveTab().then((tab) =>
+      message.kind === "home"
+        ? openContainerHome(tab)
+        : activateSlot(message.slotNumber, tab)
+    );
+  }
+
+  return undefined;
+});
 
 browser.tabs.onRemoved.addListener((tabId) => {
   clearBindingsForTab(tabId).catch((error) => console.error(error));
