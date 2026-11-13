@@ -131,8 +131,16 @@ async function load() {
   form.append(saveButton);
 }
 
+// The checkbox is a standalone preference: save it right away, like Firefox's
+// own settings, rather than waiting for the URL form's Save button.
+form.addEventListener("change", async (event) => {
+  if (!event.target.matches('input[name="autoGroupNewTabs"]')) return;
+
+  await browser.storage.local.set({ autoGroupNewTabs: event.target.checked });
+});
+
 form.addEventListener("input", (event) => {
-  if (!event.target.matches("input")) return;
+  if (!event.target.matches('input[type="url"]')) return;
 
   showMessage(status, "");
   saveButton.disabled = false;
@@ -167,9 +175,7 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
-  const autoGroupNewTabs = form.querySelector('input[name="autoGroupNewTabs"]').checked;
-
-  await browser.storage.local.set({ homes, slots, autoGroupNewTabs });
+  await browser.storage.local.set({ homes, slots });
   showMessage(status, "Saved.");
   saveButton.disabled = true;
 });
