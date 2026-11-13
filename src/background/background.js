@@ -72,7 +72,10 @@ function matchPatternFor(url) {
 
 async function focusTab(tab) {
   await browser.tabs.update(tab.id, { active: true });
-  await browser.windows.update(tab.windowId, { focused: true });
+  // Firefox for Android has no windows API (one window only).
+  if (browser.windows?.update) {
+    await browser.windows.update(tab.windowId, { focused: true });
+  }
 }
 
 // Only trusts a binding while it still points at the currently configured

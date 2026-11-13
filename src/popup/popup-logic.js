@@ -29,12 +29,14 @@ export function buildRows({ home, slots }) {
 }
 
 // Maps a keydown to a popup action: { type: "open" | "select", index }, or
-// null when the popup should leave the key alone.
-export function handleKey({ key, ctrlKey, altKey, metaKey }, rows, selectedIndex) {
+// null when the popup should leave the key alone. Held arrow keys keep
+// moving; a held open key opens only once.
+export function handleKey({ key, ctrlKey, altKey, metaKey, repeat }, rows, selectedIndex) {
   if (ctrlKey || altKey || metaKey || rows.length === 0) return null;
 
   if (key === "ArrowDown") return { type: "select", index: (selectedIndex + 1) % rows.length };
   if (key === "ArrowUp") return { type: "select", index: (selectedIndex - 1 + rows.length) % rows.length };
+  if (repeat) return null;
   if (key === "Enter") return { type: "open", index: selectedIndex };
 
   const rowKey = key.length === 1 ? key.toUpperCase() : null;

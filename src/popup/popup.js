@@ -3,6 +3,7 @@ import { buildRows, handleKey } from "./popup-logic.js";
 const heading = document.querySelector("#container");
 const list = document.querySelector("#rows");
 const empty = document.querySelector("#empty");
+const status = document.querySelector("#status");
 
 let rows = [];
 let selectedIndex = 0;
@@ -19,11 +20,23 @@ function select(index) {
   }
 }
 
+// Guards against a double-click opening the same slot twice while the first
+// request is still resolving.
+let opening = false;
+
 async function open(index) {
   const row = rows[index];
-  if (!row) return;
-  await browser.runtime.sendMessage({ type: "openRow", kind: row.kind, slotNumber: row.slotNumber });
-  window.close();
+  if (!row || opening) return;
+  opening = true;
+  try {
+    await browser.runtime.sendMessage({ type: "openRow", kind: row.kind, slotNumber: row.slotNumber });
+    window.close();
+  } catch (error) {
+    console.error("Container Homes: couldn't open", row.url, error);
+    status.textContent = `Couldn’t open ${row.label}.`;
+    status.hidden = false;
+    opening = false;
+  }
 }
 
 function renderHeading({ name, colorCode }) {
@@ -99,6 +112,8 @@ async function init() {
   list.replaceChildren(...rows.map(renderRow));
   list.hidden = false;
   select(0);
+  // Focus the listbox so screen readers follow aria-activedescendant.
+  list.focus();
 }
 
 init().catch((error) => {

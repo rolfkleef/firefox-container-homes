@@ -91,6 +91,15 @@ test("handleKey does nothing without rows", () => {
   assert.equal(handleKey({ key: "ArrowDown" }, [], 0), null);
 });
 
+test("handleKey ignores auto-repeated open keys, so a held key opens once", () => {
+  assert.equal(handleKey({ key: "7", repeat: true }, rows, 0), null);
+  assert.equal(handleKey({ key: "Enter", repeat: true }, rows, 0), null);
+});
+
+test("handleKey still moves the selection on held arrow keys", () => {
+  assert.deepEqual(handleKey({ key: "ArrowDown", repeat: true }, rows, 0), { type: "select", index: 1 });
+});
+
 test("handleKey ignores keys pressed with Ctrl, Alt or Meta", () => {
   assert.equal(handleKey({ key: "1", ctrlKey: true }, rows, 0), null);
   assert.equal(handleKey({ key: "h", altKey: true }, rows, 0), null);
