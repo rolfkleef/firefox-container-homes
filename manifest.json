@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Container Homes",
   "version": "0.6.2",
-  "description": "Set a home URL and up to 9 app slots per Firefox container, then jump to them with the toolbar button or Alt+Shift+Home/1-9.",
+  "description": "Set a home URL and up to 9 app slots per Firefox container, then jump to them from the toolbar popup or with Alt+Shift+Home/1-9.",
   "homepage_url": "https://github.com/rolfkleef/firefox-container-homes#readme",
 
   "browser_specific_settings": {
@@ -36,17 +36,29 @@
   ],
 
   "background": {
-    "scripts": ["src/background/background.js"]
+    "scripts": ["src/background/background.js"],
+    "type": "module"
   },
 
   "action": {
-    "default_title": "Open container home",
+    "default_title": "Container Homes slots",
+    "default_popup": "src/popup/popup.html",
     "default_icon": {
-      "16": "icons/icon-16.png",
-      "32": "icons/icon-32.png",
-      "48": "icons/icon-48.png",
-      "96": "icons/icon-96.png"
-    }
+      "16": "icons/toolbar-dark-16.png",
+      "32": "icons/toolbar-dark-32.png"
+    },
+    "theme_icons": [
+      {
+        "light": "icons/toolbar-light-16.png",
+        "dark": "icons/toolbar-dark-16.png",
+        "size": 16
+      },
+      {
+        "light": "icons/toolbar-light-32.png",
+        "dark": "icons/toolbar-dark-32.png",
+        "size": 32
+      }
+    ]
   },
 
   "options_ui": {
@@ -55,6 +67,12 @@
   },
 
   "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+Space"
+      },
+      "description": "Show this container's home and app slots"
+    },
     "open-container-homes": {
       "suggested_key": {
         "default": "Alt+Shift+Home"

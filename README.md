@@ -5,7 +5,8 @@ by all-in-one apps like Franz, Rambox, and so on.
 
 For each multi account container, you can specify a home page, as well as
 app or service slots 1 to 9. Use **Alt+Shift+1..9** to open or switch to
-one of the app slots in the current container.
+one of the app slots in the current container, or click the toolbar button
+(**Alt+Shift+Space**) to see the container's slots and pick one.
 
 An extra shortcut **Alt+Shift+0** lets you group the tabs in the current
 window per container, and sort them (app slots first).
@@ -13,19 +14,26 @@ window per container, and sort them (app slots first).
 ## Features
 
 - Set a different home URL per container (plus one for "No container / Default").
-  Click the toolbar button, or press **Alt+Shift+Home**, to load that
+  Press **Alt+Shift+Home** (or the **Home** key in the toolbar popup) to load that
   container's home URL in the current tab.
 - Set up to 9 app slot URLs per container. Press **Alt+Shift+1** through
   **Alt+Shift+9** to switch to that slot's tab — scoped to whichever
   container is currently active — or open it in a new tab if it isn't
   already open. If the tab lives in another window, that window is raised
   too.
+- Click the toolbar button, or press **Alt+Shift+Space**, for a popup with
+  the current container's home and slots. Slots already open in a tab are
+  marked with a dot. Home and each slot show their label if you gave them
+  one, or else their URL. Press **1**..**9** or **Home**, or use **↑**/**↓** and
+  **Enter**, to open one. Using *Customize Toolbar…*, the button can be
+  placed anywhere, including the bookmarks toolbar. The dot on the button
+  shows the current tab's container color.
 - Slots remember the exact tab they last switched to (not just a URL
   pattern), so navigating around inside an app (e.g. different Slack
   channels or Gmail threads) doesn't break the binding. If that tab is
   closed or the browser restarts, the next press falls back to matching by
   the slot URL's origin, or opens a fresh tab if nothing matches.
-- Export your configured home URLs, slots and keyboard shortcuts to a JSON file, and import them
+- Export your configured home URLs, slots, labels and keyboard shortcuts to a JSON file, and import them
   back in (on this device or another). Containers are matched by name, and
   any that don't exist yet are created with the exported icon and color.
   Importing replaces the current configuration after a confirmation prompt.
@@ -62,9 +70,13 @@ removed when Firefox restarts.
 1. Open the extension's options page (`about:addons` → Container Homes →
    *Preferences*).
 2. Enter a home URL, and a URL for any slots you want, for each container.
-3. Click the toolbar button, or press **Alt+Shift+Home** in any tab, to jump
-   to that container's home URL. Press **Alt+Shift+1**..**9** to switch to
-   (or open) that container's slot.
+   Optionally give the home URL or a slot a label (e.g. "Mail") to show in
+   the toolbar popup instead of its URL.
+3. Press **Alt+Shift+Home** in any tab to jump to that container's home
+   URL. Press **Alt+Shift+1**..**9** to switch to (or open) that
+   container's slot. Or click the toolbar button (**Alt+Shift+Space**) to
+   see the container's home and slots, which ones are open, and pick one
+   by key or with the arrow keys and Enter.
 4. Use **Export config…** on the options page to save your home URLs and
    slots to a JSON file, and **Import config…** to load one back in — this
    replaces the current configuration, after a confirmation prompt.

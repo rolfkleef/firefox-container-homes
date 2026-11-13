@@ -1,6 +1,4 @@
-const SLOT_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-const SCHEMA_VERSION = 2;
-const DEFAULT_COOKIE_STORE_ID = "firefox-default";
+import { SLOT_NUMBERS, DEFAULT_COOKIE_STORE_ID, buildExport, parseImport } from "./config.js";
 
 const form = document.querySelector("#config");
 const status = document.querySelector("#status");
@@ -27,23 +25,42 @@ function slotInputName(cookieStoreId, slotNumber) {
   return `slot:${cookieStoreId}:${slotNumber}`;
 }
 
-function addRow(section, labelText, name, value) {
-  const label = document.createElement("label");
-  const labelSpan = document.createElement("span");
+function homeLabelInputName(cookieStoreId) {
+  return `homeLabel:${cookieStoreId}`;
+}
+
+function slotLabelInputName(cookieStoreId, slotNumber) {
+  return `label:${cookieStoreId}:${slotNumber}`;
+}
+
+// One row: a heading ("Home", "Slot 3"), an optional label field, and a
+// URL field.
+function addRow(section, rowTitle, name, value, labelField) {
+  const row = document.createElement("div");
+  const titleSpan = document.createElement("span");
   const input = document.createElement("input");
 
-  labelSpan.textContent = labelText;
-  labelSpan.className = "row-label";
+  titleSpan.textContent = rowTitle;
+  titleSpan.className = "row-label";
 
   input.type = "url";
   input.name = name;
   input.value = value || "";
   input.placeholder = "https://example.org/";
   input.autocomplete = "off";
+  input.setAttribute("aria-label", `${rowTitle} URL`);
 
-  label.className = "row";
-  label.append(labelSpan, input);
-  section.append(label);
+  const labelInput = document.createElement("input");
+  labelInput.type = "text";
+  labelInput.name = labelField.name;
+  labelInput.value = labelField.value || "";
+  labelInput.placeholder = "Label (optional)";
+  labelInput.autocomplete = "off";
+  labelInput.setAttribute("aria-label", `${rowTitle} label`);
+
+  row.className = "row row--slot";
+  row.append(titleSpan, labelInput, input);
+  section.append(row);
 }
 
 function addGeneralSection(autoGroupNewTabs) {
@@ -68,7 +85,10 @@ function addGeneralSection(autoGroupNewTabs) {
   form.append(section);
 }
 
-function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes, slots) {
+function addContainerSection(
+  { cookieStoreId, name, colorCode, iconUrl },
+  { homes, homeLabels, slots, slotLabels }
+) {
   const section = document.createElement("fieldset");
   const legend = document.createElement("legend");
   const icon = document.createElement("span");
@@ -88,15 +108,20 @@ function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes,
   legend.append(icon, nameText);
   section.append(legend);
 
-  addRow(section, "Home", homeInputName(cookieStoreId), homes[cookieStoreId]);
+  addRow(section, "Home", homeInputName(cookieStoreId), homes[cookieStoreId], {
+    name: homeLabelInputName(cookieStoreId),
+    value: homeLabels[cookieStoreId]
+  });
 
   const containerSlots = slots[cookieStoreId] || {};
+  const containerLabels = slotLabels[cookieStoreId] || {};
   for (const slotNumber of SLOT_NUMBERS) {
     addRow(
       section,
       `Slot ${slotNumber}`,
       slotInputName(cookieStoreId, slotNumber),
-      containerSlots[slotNumber]
+      containerSlots[slotNumber],
+      { name: slotLabelInputName(cookieStoreId, slotNumber), value: containerLabels[slotNumber] }
     );
   }
 
@@ -104,11 +129,14 @@ function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes,
 }
 
 async function load() {
-  const { homes = {}, slots = {}, autoGroupNewTabs = false } = await browser.storage.local.get([
-    "homes",
-    "slots",
-    "autoGroupNewTabs"
-  ]);
+  const {
+    homes = {},
+    homeLabels = {},
+    slots = {},
+    slotLabels = {},
+    autoGroupNewTabs = false
+  } = await browser.storage.local.get(["homes", "homeLabels", "slots", "slotLabels", "autoGroupNewTabs"]);
+  const config = { homes, homeLabels, slots, slotLabels };
   const containers = await browser.contextualIdentities.query({});
 
   form.replaceChildren();
@@ -117,12 +145,11 @@ async function load() {
 
   addContainerSection(
     { cookieStoreId: "firefox-default", name: "No container / Default" },
-    homes,
-    slots
+    config
   );
 
   for (const container of containers) {
-    addContainerSection(container, homes, slots);
+    addContainerSection(container, config);
   }
 
   saveButton.type = "submit";
@@ -140,7 +167,7 @@ form.addEventListener("change", async (event) => {
 });
 
 form.addEventListener("input", (event) => {
-  if (!event.target.matches('input[type="url"]')) return;
+  if (!event.target.matches('input[type="url"], input[type="text"]')) return;
 
   showMessage(status, "");
   saveButton.disabled = false;
@@ -175,44 +202,39 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
-  await browser.storage.local.set({ homes, slots });
+  // A label only counts for a home or slot that has a URL; blank labels are
+  // dropped so the popup shows the URL instead.
+  const slotLabels = {};
+  for (const input of form.querySelectorAll('input[name^="label:"]')) {
+    const slotLabel = input.value.trim();
+    const [, cookieStoreId, slotNumber] = input.name.split(":");
+    if (!slotLabel || !slots[cookieStoreId]?.[slotNumber]) continue;
+    slotLabels[cookieStoreId] ??= {};
+    slotLabels[cookieStoreId][slotNumber] = slotLabel;
+  }
+
+  const homeLabels = {};
+  for (const input of form.querySelectorAll('input[name^="homeLabel:"]')) {
+    const homeLabel = input.value.trim();
+    const cookieStoreId = input.name.slice("homeLabel:".length);
+    if (homeLabel && homes[cookieStoreId]) homeLabels[cookieStoreId] = homeLabel;
+  }
+
+  await browser.storage.local.set({ homes, homeLabels, slots, slotLabels });
   showMessage(status, "Saved.");
   saveButton.disabled = true;
 });
 
-function buildExport(containers, homes, slots, commands) {
-  const defaultEntry = {
-    cookieStoreId: DEFAULT_COOKIE_STORE_ID,
-    homeUrl: homes[DEFAULT_COOKIE_STORE_ID],
-    slots: slots[DEFAULT_COOKIE_STORE_ID] || {}
-  };
-
-  // Export every container with its identity (name, icon, color) so the import
-  // can match by name or recreate it, even if cookieStoreIds differ.
-  const exportedContainers = containers.map(({ cookieStoreId, name, icon, color }) => ({
-    name,
-    icon,
-    color,
-    homeUrl: homes[cookieStoreId],
-    slots: slots[cookieStoreId] || {}
-  }));
-
-  return {
-    schemaVersion: SCHEMA_VERSION,
-    exportedAt: new Date().toISOString(),
-    containers: [defaultEntry, ...exportedContainers],
-    shortcuts: Object.fromEntries(commands.map(({ name, shortcut }) => [name, shortcut || ""]))
-  };
-}
-
 exportButton.addEventListener("click", async () => {
-  const { homes = {}, slots = {} } = await browser.storage.local.get([
+  const { homes = {}, homeLabels = {}, slots = {}, slotLabels = {} } = await browser.storage.local.get([
     "homes",
-    "slots"
+    "homeLabels",
+    "slots",
+    "slotLabels"
   ]);
   const containers = await browser.contextualIdentities.query({});
   const commands = await browser.commands.getAll();
-  const data = buildExport(containers, homes, slots, commands);
+  const data = buildExport(containers, homes, slots, commands, slotLabels, homeLabels);
 
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: "application/json"
@@ -224,108 +246,6 @@ exportButton.addEventListener("click", async () => {
   link.click();
   URL.revokeObjectURL(url);
 });
-
-// Firefox's contextualIdentities values; anything else falls back to a
-// default so a file from a newer Firefox still imports.
-const CONTAINER_ICONS = [
-  "fingerprint", "briefcase", "dollar", "cart", "circle", "gift", "vacation",
-  "food", "fruit", "pet", "tree", "chill", "fence"
-];
-const CONTAINER_COLORS = [
-  "blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple", "toolbar"
-];
-
-// Turns a parsed export file into { schemaVersion, entries, shortcuts }, or
-// throws an Error describing the first problem found. Nothing is stored or
-// created unless the whole file validates, so a bad file can't leave a
-// half-imported config.
-function parseImport(data) {
-  if (
-    !data ||
-    typeof data !== "object" ||
-    ![1, SCHEMA_VERSION].includes(data.schemaVersion) ||
-    !Array.isArray(data.containers)
-  ) {
-    throw new Error("unrecognized file format.");
-  }
-
-  const entries = data.containers.map((container) => {
-    if (!container || typeof container !== "object") {
-      throw new Error("a container entry is not an object.");
-    }
-
-    // The default container is keyed by its fixed id in every version; v1
-    // files key all containers by id, v2 files by name.
-    let entry;
-    if (container.cookieStoreId === DEFAULT_COOKIE_STORE_ID || data.schemaVersion === 1) {
-      const { cookieStoreId } = container;
-      if (typeof cookieStoreId !== "string" || !cookieStoreId) {
-        throw new Error("a container entry has no cookieStoreId.");
-      }
-      entry = { cookieStoreId, label: cookieStoreId };
-    } else {
-      const { name } = container;
-      if (typeof name !== "string" || !name.trim()) {
-        throw new Error("a container entry has no name.");
-      }
-      entry = {
-        name,
-        icon: CONTAINER_ICONS.includes(container.icon) ? container.icon : "fingerprint",
-        color: CONTAINER_COLORS.includes(container.color) ? container.color : "blue",
-        label: name
-      };
-    }
-
-    if (container.homeUrl) {
-      entry.homeUrl = parseImportedUrl(container.homeUrl, entry.label);
-    }
-
-    entry.slots = {};
-    if (container.slots !== undefined) {
-      if (
-        typeof container.slots !== "object" ||
-        container.slots === null ||
-        Array.isArray(container.slots)
-      ) {
-        throw new Error(`slots for ${entry.label} are not an object.`);
-      }
-
-      for (const [slotNumber, url] of Object.entries(container.slots)) {
-        if (!SLOT_NUMBERS.map(String).includes(slotNumber)) {
-          throw new Error(`${entry.label} has an unknown slot "${slotNumber}".`);
-        }
-        entry.slots[slotNumber] = parseImportedUrl(url, entry.label);
-      }
-    }
-
-    return entry;
-  });
-
-  // Older exports have no shortcuts; leave the current ones alone then.
-  let shortcuts = null;
-  if (data.shortcuts !== undefined) {
-    if (
-      typeof data.shortcuts !== "object" ||
-      data.shortcuts === null ||
-      Array.isArray(data.shortcuts) ||
-      !Object.values(data.shortcuts).every((shortcut) => typeof shortcut === "string")
-    ) {
-      throw new Error("shortcuts are not a map of command names to keys.");
-    }
-    shortcuts = data.shortcuts;
-  }
-
-  return { schemaVersion: data.schemaVersion, entries, shortcuts };
-}
-
-function parseImportedUrl(url, label) {
-  try {
-    if (typeof url !== "string") throw new TypeError();
-    return new URL(url).href;
-  } catch {
-    throw new Error(`${label} has an invalid URL.`);
-  }
-}
 
 importButton.addEventListener("click", () => importInput.click());
 
@@ -359,7 +279,9 @@ importInput.addEventListener("change", async () => {
   if (!confirmed) return;
 
   const homes = {};
+  const homeLabels = {};
   const slots = {};
+  const slotLabels = {};
   const existing = await browser.contextualIdentities.query({});
   const claimed = new Set();
   let created = 0;
@@ -385,10 +307,12 @@ importInput.addEventListener("change", async () => {
     }
 
     if (entry.homeUrl) homes[cookieStoreId] = entry.homeUrl;
+    if (entry.homeLabel) homeLabels[cookieStoreId] = entry.homeLabel;
     if (Object.keys(entry.slots).length > 0) slots[cookieStoreId] = entry.slots;
+    if (Object.keys(entry.slotLabels).length > 0) slotLabels[cookieStoreId] = entry.slotLabels;
   }
 
-  await browser.storage.local.set({ homes, slots });
+  await browser.storage.local.set({ homes, homeLabels, slots, slotLabels });
 
   const failedShortcuts = [];
   if (parsed.shortcuts) {
