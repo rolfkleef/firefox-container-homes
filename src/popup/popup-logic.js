@@ -13,13 +13,13 @@ export function shortenUrl(url) {
 }
 
 // Popup state (from the background's "getPopupState") to display rows:
-// Home first if configured, then slots in ascending number. A slot shows
-// its label if it has one, else its shortened URL.
-export function buildRows({ home, slots }) {
+// Home first if configured, then slots in ascending number. Home and each
+// slot show their label if they have one, else their shortened URL.
+export function buildRows({ home, homeLabel, slots }) {
   const rows = [];
 
   if (home) {
-    rows.push({ key: "H", kind: "home", slotNumber: null, url: home, label: shortenUrl(home), open: false });
+    rows.push({ key: "H", kind: "home", slotNumber: null, url: home, label: homeLabel || shortenUrl(home), open: false });
   }
 
   for (const { number, url, label, open } of [...slots].sort((a, b) => a.number - b.number)) {

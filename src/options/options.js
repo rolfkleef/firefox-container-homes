@@ -25,13 +25,17 @@ function slotInputName(cookieStoreId, slotNumber) {
   return `slot:${cookieStoreId}:${slotNumber}`;
 }
 
+function homeLabelInputName(cookieStoreId) {
+  return `homeLabel:${cookieStoreId}`;
+}
+
 function slotLabelInputName(cookieStoreId, slotNumber) {
   return `label:${cookieStoreId}:${slotNumber}`;
 }
 
-// One row: a heading ("Home", "Slot 3"), an optional label field (slots
-// only; Home gets an empty cell so the URL fields line up), and a URL field.
-function addRow(section, rowTitle, name, value, labelField = null) {
+// One row: a heading ("Home", "Slot 3"), an optional label field, and a
+// URL field.
+function addRow(section, rowTitle, name, value, labelField) {
   const row = document.createElement("div");
   const titleSpan = document.createElement("span");
   const input = document.createElement("input");
@@ -46,19 +50,16 @@ function addRow(section, rowTitle, name, value, labelField = null) {
   input.autocomplete = "off";
   input.setAttribute("aria-label", `${rowTitle} URL`);
 
-  let labelCell = document.createElement("span");
-  if (labelField) {
-    labelCell = document.createElement("input");
-    labelCell.type = "text";
-    labelCell.name = labelField.name;
-    labelCell.value = labelField.value || "";
-    labelCell.placeholder = "Label (optional)";
-    labelCell.autocomplete = "off";
-    labelCell.setAttribute("aria-label", `${rowTitle} label`);
-  }
+  const labelInput = document.createElement("input");
+  labelInput.type = "text";
+  labelInput.name = labelField.name;
+  labelInput.value = labelField.value || "";
+  labelInput.placeholder = "Label (optional)";
+  labelInput.autocomplete = "off";
+  labelInput.setAttribute("aria-label", `${rowTitle} label`);
 
   row.className = "row row--slot";
-  row.append(titleSpan, labelCell, input);
+  row.append(titleSpan, labelInput, input);
   section.append(row);
 }
 
@@ -84,7 +85,10 @@ function addGeneralSection(autoGroupNewTabs) {
   form.append(section);
 }
 
-function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes, slots, slotLabels) {
+function addContainerSection(
+  { cookieStoreId, name, colorCode, iconUrl },
+  { homes, homeLabels, slots, slotLabels }
+) {
   const section = document.createElement("fieldset");
   const legend = document.createElement("legend");
   const icon = document.createElement("span");
@@ -104,7 +108,10 @@ function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes,
   legend.append(icon, nameText);
   section.append(legend);
 
-  addRow(section, "Home", homeInputName(cookieStoreId), homes[cookieStoreId]);
+  addRow(section, "Home", homeInputName(cookieStoreId), homes[cookieStoreId], {
+    name: homeLabelInputName(cookieStoreId),
+    value: homeLabels[cookieStoreId]
+  });
 
   const containerSlots = slots[cookieStoreId] || {};
   const containerLabels = slotLabels[cookieStoreId] || {};
@@ -124,10 +131,12 @@ function addContainerSection({ cookieStoreId, name, colorCode, iconUrl }, homes,
 async function load() {
   const {
     homes = {},
+    homeLabels = {},
     slots = {},
     slotLabels = {},
     autoGroupNewTabs = false
-  } = await browser.storage.local.get(["homes", "slots", "slotLabels", "autoGroupNewTabs"]);
+  } = await browser.storage.local.get(["homes", "homeLabels", "slots", "slotLabels", "autoGroupNewTabs"]);
+  const config = { homes, homeLabels, slots, slotLabels };
   const containers = await browser.contextualIdentities.query({});
 
   form.replaceChildren();
@@ -136,13 +145,11 @@ async function load() {
 
   addContainerSection(
     { cookieStoreId: "firefox-default", name: "No container / Default" },
-    homes,
-    slots,
-    slotLabels
+    config
   );
 
   for (const container of containers) {
-    addContainerSection(container, homes, slots, slotLabels);
+    addContainerSection(container, config);
   }
 
   saveButton.type = "submit";
@@ -160,7 +167,7 @@ form.addEventListener("change", async (event) => {
 });
 
 form.addEventListener("input", (event) => {
-  if (!event.target.matches('input[type="url"], input[name^="label:"]')) return;
+  if (!event.target.matches('input[type="url"], input[type="text"]')) return;
 
   showMessage(status, "");
   saveButton.disabled = false;
@@ -195,8 +202,8 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
-  // A label only counts for a slot that has a URL; blank labels are dropped
-  // so the popup shows the URL instead.
+  // A label only counts for a home or slot that has a URL; blank labels are
+  // dropped so the popup shows the URL instead.
   const slotLabels = {};
   for (const input of form.querySelectorAll('input[name^="label:"]')) {
     const slotLabel = input.value.trim();
@@ -206,20 +213,28 @@ form.addEventListener("submit", async (event) => {
     slotLabels[cookieStoreId][slotNumber] = slotLabel;
   }
 
-  await browser.storage.local.set({ homes, slots, slotLabels });
+  const homeLabels = {};
+  for (const input of form.querySelectorAll('input[name^="homeLabel:"]')) {
+    const homeLabel = input.value.trim();
+    const cookieStoreId = input.name.slice("homeLabel:".length);
+    if (homeLabel && homes[cookieStoreId]) homeLabels[cookieStoreId] = homeLabel;
+  }
+
+  await browser.storage.local.set({ homes, homeLabels, slots, slotLabels });
   showMessage(status, "Saved.");
   saveButton.disabled = true;
 });
 
 exportButton.addEventListener("click", async () => {
-  const { homes = {}, slots = {}, slotLabels = {} } = await browser.storage.local.get([
+  const { homes = {}, homeLabels = {}, slots = {}, slotLabels = {} } = await browser.storage.local.get([
     "homes",
+    "homeLabels",
     "slots",
     "slotLabels"
   ]);
   const containers = await browser.contextualIdentities.query({});
   const commands = await browser.commands.getAll();
-  const data = buildExport(containers, homes, slots, commands, slotLabels);
+  const data = buildExport(containers, homes, slots, commands, slotLabels, homeLabels);
 
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: "application/json"
@@ -264,6 +279,7 @@ importInput.addEventListener("change", async () => {
   if (!confirmed) return;
 
   const homes = {};
+  const homeLabels = {};
   const slots = {};
   const slotLabels = {};
   const existing = await browser.contextualIdentities.query({});
@@ -291,11 +307,12 @@ importInput.addEventListener("change", async () => {
     }
 
     if (entry.homeUrl) homes[cookieStoreId] = entry.homeUrl;
+    if (entry.homeLabel) homeLabels[cookieStoreId] = entry.homeLabel;
     if (Object.keys(entry.slots).length > 0) slots[cookieStoreId] = entry.slots;
     if (Object.keys(entry.slotLabels).length > 0) slotLabels[cookieStoreId] = entry.slotLabels;
   }
 
-  await browser.storage.local.set({ homes, slots, slotLabels });
+  await browser.storage.local.set({ homes, homeLabels, slots, slotLabels });
 
   const failedShortcuts = [];
   if (parsed.shortcuts) {

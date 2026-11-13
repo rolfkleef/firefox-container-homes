@@ -71,3 +71,40 @@ test("import rejects a label for an unknown slot number", () => {
 test("import rejects a label for a slot without a URL", () => {
   assert.throws(importLabels({ 3: "Docs" }), /Work has a label for slot 3, which has no URL/);
 });
+
+test("buildExport includes a container's home label when it has one", () => {
+  const data = buildExport(containers, homes, slots, commands, {}, { "firefox-container-1": "Intranet" });
+  const work = data.containers.find((container) => container.name === "Work");
+  assert.equal(work.homeLabel, "Intranet");
+});
+
+test("buildExport leaves out homeLabel when a container has none", () => {
+  const data = buildExport(containers, homes, slots, commands, {}, {});
+  for (const container of data.containers) {
+    assert.equal("homeLabel" in container, false);
+  }
+});
+
+function importHome(homeLabel, homeUrl = "https://intra.example/") {
+  return parseImport({
+    schemaVersion: SCHEMA_VERSION,
+    containers: [{ name: "Work", homeUrl, homeLabel }]
+  }).entries[0];
+}
+
+test("an imported home label is trimmed", () => {
+  assert.equal(importHome("  Intranet ").homeLabel, "Intranet");
+});
+
+test("a missing or blank home label imports as none", () => {
+  assert.equal(importHome(undefined).homeLabel, undefined);
+  assert.equal(importHome("   ").homeLabel, undefined);
+});
+
+test("import rejects a home label that isn't text", () => {
+  assert.throws(() => importHome(42), /Work has a home label that isn't text/);
+});
+
+test("import rejects a home label without a home URL", () => {
+  assert.throws(() => importHome("Intranet", null), /Work has a home label but no home URL/);
+});

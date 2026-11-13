@@ -7,10 +7,13 @@ export const DEFAULT_COOKIE_STORE_ID = "firefox-default";
 
 // Slot labels are optional: a container's entry only gets slotLabels when
 // it has some, so files without labels look as they did before 0.7.
-export function buildExport(containers, homes, slots, commands, slotLabels = {}) {
+export function buildExport(containers, homes, slots, commands, slotLabels = {}, homeLabels = {}) {
   function withLabels(entry, cookieStoreId) {
+    const result = { ...entry };
+    if (homeLabels[cookieStoreId]) result.homeLabel = homeLabels[cookieStoreId];
     const labels = slotLabels[cookieStoreId];
-    return labels && Object.keys(labels).length > 0 ? { ...entry, slotLabels: labels } : entry;
+    if (labels && Object.keys(labels).length > 0) result.slotLabels = labels;
+    return result;
   }
 
   const defaultEntry = withLabels({
@@ -90,6 +93,17 @@ export function parseImport(data) {
 
     if (container.homeUrl) {
       entry.homeUrl = parseImportedUrl(container.homeUrl, entry.label);
+    }
+
+    // Optional, added in 0.7, like slotLabels below.
+    if (container.homeLabel !== undefined) {
+      if (typeof container.homeLabel !== "string") {
+        throw new Error(`${entry.label} has a home label that isn't text.`);
+      }
+      if (!entry.homeUrl) {
+        throw new Error(`${entry.label} has a home label but no home URL.`);
+      }
+      if (container.homeLabel.trim()) entry.homeLabel = container.homeLabel.trim();
     }
 
     entry.slots = {};

@@ -53,6 +53,12 @@ test("buildRows shows a slot's label instead of its URL when it has one", () => 
   assert.equal(rows[1].label, "app2.example");
 });
 
+test("buildRows shows Home's label instead of its URL when it has one", () => {
+  const rows = buildRows({ ...stateWithHome, homeLabel: "Intranet" });
+  assert.equal(rows[0].label, "Intranet");
+  assert.equal(rows[0].url, "https://intra.example/");
+});
+
 test("buildRows leaves out Home when it isn't configured", () => {
   const rows = buildRows({ ...stateWithHome, home: null });
   assert.deepEqual(rows.map((row) => row.key), ["2", "7"]);
