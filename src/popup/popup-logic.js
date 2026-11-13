@@ -19,7 +19,7 @@ export function buildRows({ home, homeLabel, slots }) {
   const rows = [];
 
   if (home) {
-    rows.push({ key: "H", kind: "home", slotNumber: null, url: home, label: homeLabel || shortenUrl(home), open: false });
+    rows.push({ key: "Home", kind: "home", slotNumber: null, url: home, label: homeLabel || shortenUrl(home), open: false });
   }
 
   for (const { number, url, label, open } of [...slots].sort((a, b) => a.number - b.number)) {
@@ -40,7 +40,7 @@ export function handleKey({ key, ctrlKey, altKey, metaKey, repeat }, rows, selec
   if (repeat) return null;
   if (key === "Enter") return { type: "open", index: selectedIndex };
 
-  const rowKey = key.length === 1 ? key.toUpperCase() : null;
-  const index = rows.findIndex((row) => row.key === rowKey);
+  // Row keys are the digits 1-9 and "Home", matched exactly against event.key.
+  const index = rows.findIndex((row) => row.key === key);
   return index === -1 ? null : { type: "open", index };
 }

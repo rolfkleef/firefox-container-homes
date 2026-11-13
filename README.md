@@ -14,7 +14,7 @@ window per container, and sort them (app slots first).
 ## Features
 
 - Set a different home URL per container (plus one for "No container / Default").
-  Press **Alt+Shift+Home** (or **H** in the toolbar popup) to load that
+  Press **Alt+Shift+Home** (or the **Home** key in the toolbar popup) to load that
   container's home URL in the current tab.
 - Set up to 9 app slot URLs per container. Press **Alt+Shift+1** through
   **Alt+Shift+9** to switch to that slot's tab — scoped to whichever
@@ -24,7 +24,7 @@ window per container, and sort them (app slots first).
 - Click the toolbar button, or press **Alt+Shift+Space**, for a popup with
   the current container's home and slots. Slots already open in a tab are
   marked with a dot. Home and each slot show their label if you gave them
-  one, or else their URL. Press **1**..**9** or **H**, or use **↑**/**↓** and
+  one, or else their URL. Press **1**..**9** or **Home**, or use **↑**/**↓** and
   **Enter**, to open one. Using *Customize Toolbar…*, the button can be
   placed anywhere, including the bookmarks toolbar.
 - Slots remember the exact tab they last switched to (not just a URL

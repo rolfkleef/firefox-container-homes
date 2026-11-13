@@ -59,7 +59,9 @@ function renderRow(row, index) {
 
   const key = document.createElement("span");
   key.className = "row-key";
-  key.textContent = row.key;
+  // "Home" doesn't fit the key column; show a house, like the toolbar icon.
+  key.textContent = row.kind === "home" ? "⌂" : row.key;
+  if (row.kind === "home") key.title = "Home key";
 
   const marker = document.createElement("span");
   marker.className = "row-open";

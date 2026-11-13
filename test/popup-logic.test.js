@@ -30,7 +30,7 @@ test("shortenUrl returns unparseable input unchanged", () => {
 
 test("buildRows puts Home first, then slots by number", () => {
   const rows = buildRows(stateWithHome);
-  assert.deepEqual(rows.map((row) => row.key), ["H", "2", "7"]);
+  assert.deepEqual(rows.map((row) => row.key), ["Home", "2", "7"]);
   assert.equal(rows[0].kind, "home");
   assert.equal(rows[0].slotNumber, null);
   assert.equal(rows[0].open, false);
@@ -83,14 +83,18 @@ test("handleKey ignores a number with no configured slot", () => {
   assert.equal(handleKey({ key: "3" }, rows, 0), null);
 });
 
-test("handleKey opens Home for h or H", () => {
-  assert.deepEqual(handleKey({ key: "h" }, rows, 2), { type: "open", index: 0 });
-  assert.deepEqual(handleKey({ key: "H" }, rows, 2), { type: "open", index: 0 });
+test("handleKey opens Home for the Home key", () => {
+  assert.deepEqual(handleKey({ key: "Home" }, rows, 2), { type: "open", index: 0 });
 });
 
-test("handleKey ignores H when Home isn't configured", () => {
+test("handleKey no longer opens Home for h or H", () => {
+  assert.equal(handleKey({ key: "h" }, rows, 2), null);
+  assert.equal(handleKey({ key: "H" }, rows, 2), null);
+});
+
+test("handleKey ignores the Home key when Home isn't configured", () => {
   const noHome = buildRows({ ...stateWithHome, home: null });
-  assert.equal(handleKey({ key: "h" }, noHome, 0), null);
+  assert.equal(handleKey({ key: "Home" }, noHome, 0), null);
 });
 
 test("handleKey moves the selection with arrows, wrapping at both ends", () => {
@@ -119,6 +123,6 @@ test("handleKey still moves the selection on held arrow keys", () => {
 
 test("handleKey ignores keys pressed with Ctrl, Alt or Meta", () => {
   assert.equal(handleKey({ key: "1", ctrlKey: true }, rows, 0), null);
-  assert.equal(handleKey({ key: "h", altKey: true }, rows, 0), null);
+  assert.equal(handleKey({ key: "Home", altKey: true }, rows, 0), null);
   assert.equal(handleKey({ key: "Enter", metaKey: true }, rows, 0), null);
 });
