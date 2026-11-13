@@ -9,8 +9,9 @@ const DOT = { x: 102, y: 26, radius: 23 };
 const DOT_GAP_RADIUS = 31;
 
 const HOUSE_COLOR = { light: "#2b3a67", dark: "#f4f6fb" };
-// Teal dot for tabs without a container, a bit darker on light toolbars.
-const DEFAULT_DOT_COLOR = { light: "#159a91", dark: "#5ad1c9" };
+// Tabs without a container get the color of the "No Container" tab group
+// (grey): Firefox's --tab-group-color-gray and its dark-mode -invert.
+const DEFAULT_DOT_COLOR = { light: "#5e6a77", dark: "#99a6b4" };
 
 export function iconColors({ colorCode, dark }) {
   const mode = dark ? "dark" : "light";

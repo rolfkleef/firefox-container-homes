@@ -3,9 +3,9 @@
   font: menu;
   --border: color-mix(in srgb, currentColor 20%, transparent);
   --selected: color-mix(in srgb, AccentColor 22%, transparent);
-  /* Open-slot dots: the container's color (set by popup.js), else teal
-     like the toolbar button's dot. */
-  --open: var(--container-color, #159a91);
+  /* Open-slot dots: the container's color (set by popup.js), else the
+     grey of the "No Container" tab group, like the toolbar button's dot. */
+  --open: var(--container-color, #5e6a77);
 }
 
 body {
@@ -51,7 +51,7 @@ ul:focus {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --open: var(--container-color, #5ad1c9);
+    --open: var(--container-color, #99a6b4);
   }
 
   .status {
