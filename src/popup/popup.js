@@ -44,7 +44,8 @@ function renderHeading({ name, colorCode }) {
   if (colorCode) {
     const dot = document.createElement("span");
     dot.className = "container-dot";
-    dot.style.setProperty("--container-color", colorCode);
+    // On the root, so the open-slot dots pick it up too (popup.css --open).
+    document.documentElement.style.setProperty("--container-color", colorCode);
     heading.append(dot);
   }
   heading.append(name);
