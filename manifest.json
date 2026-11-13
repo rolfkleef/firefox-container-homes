@@ -43,11 +43,21 @@
     "default_title": "Container Homes slots",
     "default_popup": "src/popup/popup.html",
     "default_icon": {
-      "16": "icons/icon-16.png",
-      "32": "icons/icon-32.png",
-      "48": "icons/icon-48.png",
-      "96": "icons/icon-96.png"
-    }
+      "16": "icons/toolbar-dark-16.png",
+      "32": "icons/toolbar-dark-32.png"
+    },
+    "theme_icons": [
+      {
+        "light": "icons/toolbar-light-16.png",
+        "dark": "icons/toolbar-dark-16.png",
+        "size": 16
+      },
+      {
+        "light": "icons/toolbar-light-32.png",
+        "dark": "icons/toolbar-dark-32.png",
+        "size": 32
+      }
+    ]
   },
 
   "options_ui": {
