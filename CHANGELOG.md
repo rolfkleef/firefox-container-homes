@@ -4,6 +4,35 @@ All notable changes to this project are documented here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and commit
 messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [0.7.0] - 2026-11-13
+
+### Features
+
+- The toolbar button now opens a popup with the current container's home
+  and app slots. Slots already open in a tab are marked with a dot. Press
+  `1`–`9` or `Home`, or use the arrow keys and `Enter`, to open one, or
+  click it. Open the popup from the keyboard with `Alt+Shift+Space`.
+- The toolbar button can be placed anywhere through *Customize Toolbar…*,
+  including on the bookmarks toolbar.
+- Add an optional label for the home URL and for each app slot. The popup
+  shows the label instead of the URL. Labels are included in config export
+  and import.
+- The toolbar button has a new, larger icon without a background. Its dot
+  shows the current tab's container color, or the grey of the "No
+  Container" tab group.
+
+### Changes
+
+- Clicking the toolbar button no longer loads the container's home page
+  straight away; it opens the popup, where Home is the first entry.
+  `Alt+Shift+Home` still loads it directly.
+
+### Bug Fixes
+
+- The "Automatically add new tabs to their container's tab group" setting
+  is now saved as soon as you toggle it, instead of only when you press
+  Save.
+
 ## [0.6.2] - 2026-10-26
 
 ### Bug Fixes
@@ -149,6 +178,7 @@ messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1
 - Add a README covering installation, usage, permissions, development, and
   the release process.
 
+[0.7.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.7.0
 [0.6.2]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.6.2
 [0.6.1]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.6.1
 [0.6.0]: https://github.com/rolfkleef/firefox-container-homes/releases/tag/v0.6.0
