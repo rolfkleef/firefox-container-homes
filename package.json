@@ -5,6 +5,7 @@
   "description": "Set a home URL and up to 9 app slots per Firefox container, then jump to them with the toolbar button or Alt+Shift+Home/1-9.",
   "license": "MIT",
   "scripts": {
+    "test": "node --test 'test/*.test.js'",
     "lint": "web-ext lint",
     "start": "web-ext run",
     "build": "web-ext build",
@@ -12,5 +13,12 @@
   },
   "devDependencies": {
     "web-ext": "^10.8.0"
+  },
+  "webExt": {
+    "ignoreFiles": [
+      "test",
+      "docs",
+      "MAINTENANCE.md"
+    ]
   }
 }
