@@ -1,3 +1,5 @@
+import { drawIcon, iconColors } from "./toolbar-icon.js";
+
 const CONFIG_VERSION = 1;
 
 browser.runtime.onInstalled.addListener(async () => {
@@ -395,6 +397,19 @@ browser.commands.onCommand.addListener(async (command) => {
   }
 });
 
+// The container's color as a CSS color, or null for no container, a
+// private window, or a container removed since the tab was created.
+async function containerColorCode(cookieStoreId) {
+  if (cookieStoreId === DEFAULT_COOKIE_STORE_ID || cookieStoreId === "firefox-private") {
+    return null;
+  }
+  try {
+    return (await browser.contextualIdentities.get(cookieStoreId)).colorCode;
+  } catch {
+    return null;
+  }
+}
+
 // What the slot popup shows for this tab's container: its name and color,
 // its home URL, and its configured slots, each marked open if switching to
 // it would focus an existing tab (resolveSlotTab is read-only).
@@ -407,20 +422,11 @@ async function getPopupState(tab) {
     "slotLabels"
   ]);
 
-  let name;
-  let colorCode = null;
-  if (cookieStoreId === "firefox-private") {
-    name = "Private";
-  } else {
-    ({ title: name } = await groupInfoForCookieStoreId(cookieStoreId));
-    if (cookieStoreId !== DEFAULT_COOKIE_STORE_ID) {
-      try {
-        ({ colorCode } = await browser.contextualIdentities.get(cookieStoreId));
-      } catch {
-        // Container removed since the tab was created; no color.
-      }
-    }
-  }
+  const name =
+    cookieStoreId === "firefox-private"
+      ? "Private"
+      : (await groupInfoForCookieStoreId(cookieStoreId)).title;
+  const colorCode = await containerColorCode(cookieStoreId);
 
   const containerSlots = slots[cookieStoreId] ?? {};
   const containerLabels = slotLabels[cookieStoreId] ?? {};
@@ -497,3 +503,53 @@ browser.tabs.onCreated.addListener((tab) => {
     console.error("Container Homes: failed to auto-group new tab:", error)
   );
 });
+
+// Toolbar icon: the dot takes the active tab's container color, per window.
+// Setting the icon overrides the manifest's theme_icons, so light/dark is
+// taken from Firefox's color scheme (which follows the theme by default).
+// Firefox for Android has no windows API and no toolbar button; skip there.
+const darkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+async function updateToolbarIcon(windowId) {
+  const [tab] = await browser.tabs.query({ active: true, windowId });
+  if (!tab) return;
+
+  const colors = iconColors({
+    colorCode: await containerColorCode(tab.cookieStoreId),
+    dark: darkScheme.matches
+  });
+  await browser.action.setIcon({
+    windowId,
+    imageData: { 16: drawIcon(16, colors), 32: drawIcon(32, colors) }
+  });
+}
+
+async function updateAllToolbarIcons() {
+  const windows = await browser.windows.getAll({ windowTypes: ["normal"] });
+  await Promise.all(windows.map(({ id }) => updateToolbarIcon(id)));
+}
+
+function logIconError(error) {
+  console.error("Container Homes: failed to update toolbar icon:", error);
+}
+
+if (browser.windows) {
+  browser.tabs.onActivated.addListener(({ windowId }) => {
+    updateToolbarIcon(windowId).catch(logIconError);
+  });
+  browser.windows.onCreated.addListener(({ id }) => {
+    updateToolbarIcon(id).catch(logIconError);
+  });
+  browser.contextualIdentities.onUpdated.addListener(() => {
+    updateAllToolbarIcons().catch(logIconError);
+  });
+  darkScheme.addEventListener("change", () => {
+    updateAllToolbarIcons().catch(logIconError);
+  });
+  browser.runtime.onStartup.addListener(() => {
+    updateAllToolbarIcons().catch(logIconError);
+  });
+  browser.runtime.onInstalled.addListener(() => {
+    updateAllToolbarIcons().catch(logIconError);
+  });
+}

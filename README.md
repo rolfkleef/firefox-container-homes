@@ -26,7 +26,8 @@ window per container, and sort them (app slots first).
   marked with a dot. Home and each slot show their label if you gave them
   one, or else their URL. Press **1**..**9** or **Home**, or use **↑**/**↓** and
   **Enter**, to open one. Using *Customize Toolbar…*, the button can be
-  placed anywhere, including the bookmarks toolbar.
+  placed anywhere, including the bookmarks toolbar. The dot on the button
+  shows the current tab's container color.
 - Slots remember the exact tab they last switched to (not just a URL
   pattern), so navigating around inside an app (e.g. different Slack
   channels or Gmail threads) doesn't break the binding. If that tab is
