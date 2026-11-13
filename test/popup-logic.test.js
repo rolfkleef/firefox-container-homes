@@ -42,6 +42,17 @@ test("buildRows puts Home first, then slots by number", () => {
   assert.equal(rows[2].label, "github.com/org");
 });
 
+test("buildRows shows a slot's label instead of its URL when it has one", () => {
+  const rows = buildRows({
+    container,
+    home: null,
+    slots: [{ ...slot(1), label: "Mail" }, slot(2)]
+  });
+  assert.equal(rows[0].label, "Mail");
+  assert.equal(rows[0].url, "https://app1.example/");
+  assert.equal(rows[1].label, "app2.example");
+});
+
 test("buildRows leaves out Home when it isn't configured", () => {
   const rows = buildRows({ ...stateWithHome, home: null });
   assert.deepEqual(rows.map((row) => row.key), ["2", "7"]);

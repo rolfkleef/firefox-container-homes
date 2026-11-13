@@ -33,6 +33,10 @@ fieldset {
   gap: 0.75rem;
 }
 
+.row--slot {
+  grid-template-columns: 5rem minmax(6rem, 12rem) 1fr;
+}
+
 .row-label {
   opacity: 0.85;
 }

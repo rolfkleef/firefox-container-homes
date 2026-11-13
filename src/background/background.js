@@ -400,7 +400,11 @@ browser.commands.onCommand.addListener(async (command) => {
 // it would focus an existing tab (resolveSlotTab is read-only).
 async function getPopupState(tab) {
   const { cookieStoreId } = tab;
-  const { homes = {}, slots = {} } = await browser.storage.local.get(["homes", "slots"]);
+  const { homes = {}, slots = {}, slotLabels = {} } = await browser.storage.local.get([
+    "homes",
+    "slots",
+    "slotLabels"
+  ]);
 
   let name;
   let colorCode = null;
@@ -418,12 +422,13 @@ async function getPopupState(tab) {
   }
 
   const containerSlots = slots[cookieStoreId] ?? {};
+  const containerLabels = slotLabels[cookieStoreId] ?? {};
   const slotList = [];
   for (let number = 1; number <= 9; number++) {
     const url = containerSlots[number];
     if (!url) continue;
     const open = Boolean(await resolveSlotTab(cookieStoreId, number, url));
-    slotList.push({ number, url, open });
+    slotList.push({ number, url, label: containerLabels[number] ?? null, open });
   }
 
   return {
