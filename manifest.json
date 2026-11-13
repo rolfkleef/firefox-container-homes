@@ -40,7 +40,8 @@
   },
 
   "action": {
-    "default_title": "Open container home",
+    "default_title": "Container Homes slots",
+    "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
@@ -55,6 +56,12 @@
   },
 
   "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+Space"
+      },
+      "description": "Show this container's home and app slots"
+    },
     "open-container-homes": {
       "suggested_key": {
         "default": "Alt+Shift+Home"
